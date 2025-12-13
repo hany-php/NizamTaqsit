@@ -1,0 +1,64 @@
+# نظام تقسيط - NizamTaqsit
+# Docker Compose Configuration
+
+#version: '3.8'
+
+services:
+  # Main Application
+  nizamtaqsit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nizamtaqsit:latest
+    container_name: nizamtaqsit-app
+    restart: unless-stopped
+    ports:
+      - "8080:80"  # Access at http://localhost:8080
+    volumes:
+      # Local file persistence (على جهازك)
+      - ./database:/var/www/html/database
+      - ./public/uploads:/var/www/html/public/uploads
+      - ./config:/var/www/html/config
+      
+      # Server mount (مجلد على السيرفر - عدل المسار حسب السيرفر)
+      # Uncomment and modify the path below for your server mount
+      # - /mnt/server/nizamtaqsit/database:/var/www/html/database
+      # - /mnt/server/nizamtaqsit/uploads:/var/www/html/public/uploads
+      
+      # Named volumes for logs
+      - app_logs:/var/log/nginx
+    environment:
+      - TZ=Africa/Cairo
+      - PHP_OPCACHE_ENABLE=1
+    networks:
+      - nizamtaqsit-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# Optional: Database backup service
+  backup:
+    image: alpine:latest
+    container_name: nizamtaqsit-backup
+    restart: "no"
+    volumes:
+      - ./database:/source:ro
+      - ./backups:/backup
+    command: >
+      sh -c "
+        mkdir -p /backup
+        cp /source/*.sqlite /backup/database_$(date +%Y%m%d_%H%M%S).sqlite
+        echo 'Backup completed'
+      "
+    profiles:
+      - backup
+
+networks:
+  nizamtaqsit-network:
+    driver: bridge
+
+volumes:
+  app_logs:
+    driver: local

@@ -1,0 +1,44 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.vscode
+*.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose*.yml
+Dockerfile*
+.docker
+
+# Development
+.env.local
+.env.*.local
+*.log
+
+# Documentation
+README.md
+docs/
+*.md
+
+# Tests
+tests/
+phpunit.xml
+
+# Cache
+.cache
+*.cache
+
+# Backups (they are stored separately)
+backups/
+*.bak
+
+# Temporary files
+tmp/
+temp/

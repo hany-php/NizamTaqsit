@@ -1,0 +1,17 @@
+RewriteEngine On
+
+# تجاهل المجلدات والملفات الموجودة
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# توجيه كل الطلبات إلى index.php
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# ضبط الترميز
+AddDefaultCharset UTF-8
+
+# منع الوصول للملفات الحساسة
+<FilesMatch "\.(sql|sqlite|log|env)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
