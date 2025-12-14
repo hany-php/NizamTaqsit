@@ -226,6 +226,111 @@
             });
         }
     </script>
+    
+    <!-- PWA Install Prompt -->
+    <script>
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            // Show custom install button
+            showInstallButton();
+        });
+        
+        function showInstallButton() {
+            // إنشاء زر التثبيت إذا لم يكن موجوداً
+            if (!document.getElementById('pwa-install-btn')) {
+                const btn = document.createElement('button');
+                btn.id = 'pwa-install-btn';
+                btn.className = 'pwa-install-btn';
+                btn.innerHTML = '<span class="material-icons-round">install_mobile</span> تثبيت التطبيق';
+                btn.onclick = installPWA;
+                document.body.appendChild(btn);
+            }
+        }
+        
+        async function installPWA() {
+            if (!deferredPrompt) return;
+            
+            // Show the install prompt
+            deferredPrompt.prompt();
+            
+            // Wait for the user to respond to the prompt
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log('User response to the install prompt:', outcome);
+            
+            // Clear the deferredPrompt
+            deferredPrompt = null;
+            
+            // Hide the install button
+            const btn = document.getElementById('pwa-install-btn');
+            if (btn) btn.remove();
+        }
+        
+        // Hide button if app is already installed
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA was installed');
+            const btn = document.getElementById('pwa-install-btn');
+            if (btn) btn.remove();
+            deferredPrompt = null;
+        });
+        
+        // Check if running in standalone mode (already installed)
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            console.log('Running as installed PWA');
+        }
+    </script>
+    
+    <style>
+        .pwa-install-btn {
+            position: fixed;
+            bottom: 90px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #1e88e5, #1565c0);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Cairo', sans-serif;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(30, 136, 229, 0.4);
+            z-index: 998;
+            animation: pwa-pulse 2s infinite;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .pwa-install-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 25px rgba(30, 136, 229, 0.5);
+        }
+        
+        .pwa-install-btn .material-icons-round {
+            font-size: 20px;
+        }
+        
+        @keyframes pwa-pulse {
+            0%, 100% { box-shadow: 0 4px 20px rgba(30, 136, 229, 0.4); }
+            50% { box-shadow: 0 4px 30px rgba(30, 136, 229, 0.6); }
+        }
+        
+        @media (max-width: 480px) {
+            .pwa-install-btn {
+                bottom: 80px;
+                left: 10px;
+                right: 80px;
+                padding: 10px 15px;
+                font-size: 13px;
+            }
+        }
+    </style>
 </body>
 </html>
 
