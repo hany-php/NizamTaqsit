@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>لا يوجد اتصال - نظام تقسيط</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Cairo", sans-serif;
+        background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        direction: rtl;
+      }
+      .container {
+        text-align: center;
+        color: white;
+        max-width: 400px;
+      }
+      .icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+      h1 {
+        font-size: 28px;
+        margin-bottom: 15px;
+      }
+      p {
+        font-size: 16px;
+        opacity: 0.9;
+        margin-bottom: 30px;
+        line-height: 1.8;
+      }
+      .btn {
+        display: inline-block;
+        padding: 15px 40px;
+        background: white;
+        color: #1a237e;
+        border: none;
+        border-radius: 50px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        text-decoration: none;
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+    </style>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <div class="icon">📡</div>
+      <h1>لا يوجد اتصال بالإنترنت</h1>
+      <p>
+        يبدو أنك غير متصل بالإنترنت حالياً.
+        <br />
+        تأكد من اتصالك بالشبكة وحاول مرة أخرى.
+      </p>
+      <button class="btn" onclick="location.reload()">إعادة المحاولة</button>
+    </div>
+  </body>
+</html>
