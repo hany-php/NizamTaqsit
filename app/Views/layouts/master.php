@@ -154,23 +154,61 @@
             const overlay = document.querySelector('.sidebar-overlay');
             const menuBtn = document.querySelector('.mobile-menu-toggle .material-icons-round');
             
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
+            if (!sidebar || !overlay || !menuBtn) return;
             
-            if (sidebar.classList.contains('active')) {
-                menuBtn.textContent = 'close';
-            } else {
+            const isOpen = sidebar.classList.contains('active');
+            
+            if (isOpen) {
+                // إغلاق القائمة
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
                 menuBtn.textContent = 'menu';
+                document.body.style.overflow = '';
+            } else {
+                // فتح القائمة
+                sidebar.classList.add('active');
+                overlay.classList.add('active');
+                menuBtn.textContent = 'close';
+                document.body.style.overflow = 'hidden';
             }
         }
         
-        // Close menu when clicking on a link
+        // إغلاق القائمة عند الضغط على Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const sidebar = document.querySelector('.sidebar');
+                if (sidebar && sidebar.classList.contains('active')) {
+                    toggleMobileMenu();
+                }
+            }
+        });
+        
+        // إغلاق القائمة عند النقر على رابط
         document.querySelectorAll('.sidebar .nav-link').forEach(link => {
             link.addEventListener('click', () => {
                 if (window.innerWidth <= 768) {
-                    toggleMobileMenu();
+                    setTimeout(() => {
+                        const sidebar = document.querySelector('.sidebar');
+                        if (sidebar && sidebar.classList.contains('active')) {
+                            toggleMobileMenu();
+                        }
+                    }, 100);
                 }
             });
+        });
+        
+        // إعادة تعيين حالة القائمة عند تغيير حجم الشاشة
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                const sidebar = document.querySelector('.sidebar');
+                const overlay = document.querySelector('.sidebar-overlay');
+                const menuBtn = document.querySelector('.mobile-menu-toggle .material-icons-round');
+                
+                if (sidebar) sidebar.classList.remove('active');
+                if (overlay) overlay.classList.remove('active');
+                if (menuBtn) menuBtn.textContent = 'menu';
+                document.body.style.overflow = '';
+            }
         });
     </script>
     

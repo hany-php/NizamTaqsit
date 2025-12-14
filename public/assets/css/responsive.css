@@ -67,6 +67,9 @@
   
   /* إخفاء الشريط الجانبي */
   .sidebar {
+    position: fixed;
+    right: 0;
+    top: 0;
     transform: translateX(100%);
     width: 280px;
     z-index: 1001;
@@ -74,7 +77,7 @@
   }
   
   .sidebar.active {
-    transform: translateX(0);
+    transform: translateX(0) !important;
   }
   
   /* Overlay عند فتح القائمة */
