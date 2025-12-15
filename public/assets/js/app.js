@@ -4,7 +4,37 @@
 
 // تبديل الشريط الجانبي
 function toggleSidebar() {
-    document.querySelector('.sidebar').classList.toggle('open');
+    // على شاشات الموبايل، استخدم نفس وظيفة القائمة المتنقلة
+    if (window.innerWidth <= 768) {
+        // استدعاء toggleMobileMenu إذا كانت موجودة
+        if (typeof toggleMobileMenu === 'function') {
+            toggleMobileMenu();
+        } else {
+            // fallback - نفس المنطق
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const menuBtn = document.querySelector('.mobile-menu-toggle .material-icons-round');
+            
+            if (!sidebar) return;
+            
+            const isOpen = sidebar.classList.contains('active');
+            
+            if (isOpen) {
+                sidebar.classList.remove('active');
+                if (overlay) overlay.classList.remove('active');
+                if (menuBtn) menuBtn.textContent = 'menu';
+                document.body.style.overflow = '';
+            } else {
+                sidebar.classList.add('active');
+                if (overlay) overlay.classList.add('active');
+                if (menuBtn) menuBtn.textContent = 'close';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+    } else {
+        // على الديسكتوب، toggle الـ sidebar العادية
+        document.querySelector('.sidebar').classList.toggle('open');
+    }
 }
 
 // تبديل الوضع الليلي

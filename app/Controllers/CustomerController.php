@@ -89,7 +89,50 @@ class CustomerController extends Controller
         
         $this->logActivity('create', 'customer', $id, 'إضافة عميل: ' . $data['full_name']);
         $this->success('تم إضافة العميل بنجاح');
-        $this->redirect(url('/customers'));
+        
+        // التوجيه حسب الصفحة المصدر مع تمرير معرف العميل الجديد
+        $returnTo = $this->input('return_to');
+        if ($returnTo === 'pos') {
+            $this->redirect(url('/pos?new_customer_id=' . $id));
+        } elseif ($returnTo === 'installment') {
+            $this->redirect(url('/pos/installment?new_customer_id=' . $id));
+        } else {
+            $this->redirect(url('/customers'));
+        }
+    }
+
+    public function storeAjax(): void
+    {
+        try {
+            $data = [
+                'full_name' => $this->input('full_name'),
+                'phone' => $this->input('phone'),
+                'phone2' => $this->input('phone2'),
+                'national_id' => $this->input('national_id'),
+                'address' => $this->input('address'),
+                'credit_limit' => (float) $this->input('credit_limit', 5000),
+                'is_active' => 1
+            ];
+            
+            if (empty($data['full_name']) || empty($data['phone'])) {
+                $this->json(['success' => false, 'message' => 'الاسم ورقم الهاتف مطلوبان']);
+                return;
+            }
+            
+            $id = $this->customerModel->create($data);
+            $this->logActivity('create', 'customer', $id, 'إضافة عميل (POS): ' . $data['full_name']);
+            
+            $this->json([
+                'success' => true, 
+                'customer' => [
+                    'id' => $id,
+                    'full_name' => $data['full_name'],
+                    'phone' => $data['phone']
+                ]
+            ]);
+        } catch (\Exception $e) {
+            $this->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
     
     public function show(int $id): void

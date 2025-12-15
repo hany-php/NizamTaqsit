@@ -41,6 +41,11 @@
 <body>
     <div class="contract">
         <div class="header">
+            <?php if (!empty($settings['store_logo'])): ?>
+                <img src="<?= asset('images/' . $settings['store_logo']) ?>" alt="الشعار" style="max-width: 150px; max-height: 80px; margin-bottom: 10px;">
+            <?php else: ?>
+                <img src="<?= asset('images/logo.png') ?>" alt="الشعار" style="max-width: 150px; max-height: 80px; margin-bottom: 10px;">
+            <?php endif; ?>
             <h1><?= $settings['store_name'] ?? 'نظام تقسيط' ?></h1>
             <h2>عقد بيع بالتقسيط</h2>
             <p><?= $settings['store_address'] ?? '' ?> | هاتف: <?= $settings['store_phone'] ?? '' ?></p>

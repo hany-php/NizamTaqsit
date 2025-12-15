@@ -397,6 +397,140 @@ class InvoiceController extends Controller
     }
     
     /**
+     * صفحة تعديل فاتورة
+     */
+    public function edit(int $id): void
+    {
+        $invoice = $this->invoiceModel->getWithDetails($id);
+        
+        if (!$invoice) {
+            $this->error('الفاتورة غير موجودة');
+            $this->redirect(url('/invoices'));
+            return;
+        }
+        
+        // لا يمكن تعديل الفواتير الملغية
+        if ($invoice['status'] === 'cancelled') {
+            $this->error('لا يمكن تعديل فاتورة ملغية');
+            $this->redirect(url('/invoices/' . $id));
+            return;
+        }
+        
+        $categoryModel = new Category();
+        
+        $products = $this->productModel->getActive();
+        $categories = $categoryModel->getActive();
+        $customers = $this->customerModel->all('full_name');
+        
+        $this->view('invoices/edit', [
+            'pageTitle' => 'تعديل فاتورة ' . $invoice['invoice_number'],
+            'invoice' => $invoice,
+            'products' => $products,
+            'categories' => $categories,
+            'customers' => $customers
+        ]);
+    }
+    
+    /**
+     * تحديث فاتورة
+     */
+    public function update(int $id): void
+    {
+        $invoice = $this->invoiceModel->find($id);
+        
+        if (!$invoice) {
+            $this->error('الفاتورة غير موجودة');
+            $this->redirect(url('/invoices'));
+            return;
+        }
+        
+        // لا يمكن تعديل الفواتير الملغية
+        if ($invoice['status'] === 'cancelled') {
+            $this->error('لا يمكن تعديل فاتورة ملغية');
+            $this->redirect(url('/invoices/' . $id));
+            return;
+        }
+        
+        $this->db->beginTransaction();
+        
+        try {
+            // للفواتير النقدية: تعديل كامل
+            if ($invoice['invoice_type'] === 'cash') {
+                $items = json_decode($this->input('items'), true);
+                
+                if (empty($items)) {
+                    $this->error('يجب إضافة منتجات للفاتورة');
+                    $this->redirect(url('/invoices/' . $id . '/edit'));
+                    return;
+                }
+                
+                // إرجاع المخزون القديم
+                $oldItems = $this->invoiceModel->getItems($id);
+                foreach ($oldItems as $item) {
+                    $this->productModel->updateQuantity($item['product_id'], $item['quantity']);
+                }
+                
+                // حذف البنود القديمة
+                $this->db->delete('invoice_items', 'invoice_id = ?', [$id]);
+                
+                // حساب المجموع الجديد
+                $subtotal = 0;
+                foreach ($items as $item) {
+                    $subtotal += $item['price'] * $item['quantity'];
+                }
+                
+                $discount = (float) $this->input('discount', 0);
+                $total = $subtotal - $discount;
+                
+                // تحديث الفاتورة
+                $this->invoiceModel->update($id, [
+                    'customer_id' => $this->input('customer_id') ?: null,
+                    'subtotal' => $subtotal,
+                    'discount_amount' => $discount,
+                    'total_amount' => $total,
+                    'paid_amount' => $total,
+                    'notes' => $this->input('notes')
+                ]);
+                
+                // إضافة البنود الجديدة
+                foreach ($items as $item) {
+                    $product = $this->productModel->find($item['id']);
+                    
+                    $this->db->insert('invoice_items', [
+                        'invoice_id' => $id,
+                        'product_id' => $item['id'],
+                        'product_name' => $product['name'],
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $item['price'],
+                        'total_price' => $item['price'] * $item['quantity'],
+                        'serial_number' => $item['serial'] ?? null,
+                        'created_at' => date('Y-m-d H:i:s')
+                    ]);
+                    
+                    // خصم من المخزون
+                    $this->productModel->updateQuantity($item['id'], -$item['quantity']);
+                }
+            } else {
+                // فواتير التقسيط: تعديل الملاحظات فقط
+                $this->invoiceModel->update($id, [
+                    'notes' => $this->input('notes')
+                ]);
+            }
+            
+            $this->db->commit();
+            
+            $this->logActivity('update', 'invoice', $id, 'تعديل فاتورة');
+            $this->success('تم تحديث الفاتورة بنجاح');
+            $this->redirect(url('/invoices/' . $id));
+            
+        } catch (\Exception $e) {
+            $this->db->rollback();
+            $this->error('حدث خطأ: ' . $e->getMessage());
+            $this->redirect(url('/invoices/' . $id . '/edit'));
+        }
+    }
+    
+    /**
      * إلغاء فاتورة
      */
     public function cancel(int $id): void

@@ -50,6 +50,7 @@ $router->post('/categories/{id}/delete', 'CategoryController@destroy');
 $router->get('/customers', 'CustomerController@index');
 $router->get('/customers/create', 'CustomerController@create');
 $router->post('/customers', 'CustomerController@store');
+$router->post('/customers/store_ajax', 'CustomerController@storeAjax');
 $router->get('/customers/{id}', 'CustomerController@show');
 $router->get('/customers/{id}/edit', 'CustomerController@edit');
 $router->post('/customers/{id}', 'CustomerController@update');
@@ -70,6 +71,8 @@ $router->get('/pos/calculate', 'InvoiceController@calculateInstallment');
 // ══════════════════════════════════════════════════════════════════
 $router->get('/invoices', 'InvoiceController@index');
 $router->get('/invoices/{id}', 'InvoiceController@show');
+$router->get('/invoices/{id}/edit', 'InvoiceController@edit');
+$router->post('/invoices/{id}', 'InvoiceController@update');
 $router->get('/invoices/{id}/print', 'InvoiceController@print');
 $router->get('/invoices/{id}/contract', 'InvoiceController@contract');
 $router->post('/invoices/{id}/cancel', 'InvoiceController@cancel');

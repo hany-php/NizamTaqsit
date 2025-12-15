@@ -1,6 +1,9 @@
 <div class="page-header">
     <h2><span class="material-icons-round">receipt</span> فاتورة رقم <?= $invoice['invoice_number'] ?></h2>
     <div class="header-actions">
+        <?php if ($invoice['status'] !== 'cancelled'): ?>
+        <a href="<?= url('/invoices/' . $invoice['id'] . '/edit') ?>" class="btn btn-warning"><span class="material-icons-round">edit</span> تعديل</a>
+        <?php endif; ?>
         <a href="<?= url('/invoices/' . $invoice['id'] . '/print') ?>" class="btn btn-primary" target="_blank"><span class="material-icons-round">print</span> طباعة</a>
         <?php if ($invoice['invoice_type'] === 'installment'): ?>
         <a href="<?= url('/invoices/' . $invoice['id'] . '/contract') ?>" class="btn btn-success" target="_blank"><span class="material-icons-round">description</span> العقد</a>

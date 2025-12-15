@@ -30,9 +30,14 @@
 <body>
     <div class="invoice">
         <div class="header">
-            <h1><?= $settings['store_name'] ?? 'نظام تقسيط' ?></h1>
+            <?php if (!empty($settings['store_logo'])): ?>
+                <img src="<?= asset('images/' . $settings['store_logo']) ?>" alt="الشعار" style="max-width: auto; max-height: 195px; margin-bottom: 10px;">
+            <?php else: ?>
+                <img src="<?= asset('images/logo.png') ?>" alt="الشعار" style="max-width: auto; max-height: 195px; margin-bottom: 10px;">
+            <?php endif; ?>
+            <!--<h1><?= $settings['store_name'] ?? 'نظام تقسيط' ?></h1>
             <p><?= $settings['store_address'] ?? '' ?></p>
-            <p>هاتف: <?= $settings['store_phone'] ?? '' ?></p>
+            <p>هاتف: <?= $settings['store_phone'] ?? '' ?></p>-->
         </div>
         
         <div class="invoice-info">

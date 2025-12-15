@@ -120,10 +120,17 @@
 </head>
 <body>
     <div class="login-container">
-        <div class="logo">
+        <!-- <div class="logo">
             <span class="material-icons-round">store</span>
         </div>
-        <h1>نظام تقسيط</h1>
+        <h1>نظام تقسيط</h1> -->
+        <div >
+        <?php if (!empty($settings['store_logo'])): ?>
+                <img src="<?= asset('images/' . $settings['store_logo']) ?>" alt="الشعار" style="max-width: 900px; max-height: 187px; margin-bottom: 10px;">
+            <?php else: ?>
+                <img src="<?= asset('images/logo.png') ?>" alt="الشعار" style="max-width: 900px; max-height: 187px; margin-bottom: 10px;">
+            <?php endif; ?>
+        </div>
         <p class="subtitle">مرحباً بك، قم بتسجيل الدخول للمتابعة</p>
         
         <?php if ($error = flash('error')): ?>

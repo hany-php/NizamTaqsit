@@ -17,11 +17,20 @@ function url(string $path = ''): string
 }
 
 /**
- * الحصول على مسار الأصول
+ * الحصول على مسار الأصول مع دعم cache busting
  */
 function asset(string $path): string
 {
-    return url('assets/' . ltrim($path, '/'));
+    $assetPath = 'assets/' . ltrim($path, '/');
+    $fullPath = BASE_PATH . '/public/' . $assetPath;
+    
+    // إضافة version query string بناءً على وقت تعديل الملف
+    $version = '';
+    if (file_exists($fullPath)) {
+        $version = '?v=' . filemtime($fullPath);
+    }
+    
+    return url($assetPath) . $version;
 }
 
 /**

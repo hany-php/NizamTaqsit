@@ -10,8 +10,70 @@ RewriteRule ^(.*)$ index.php [QSA,L]
 # ضبط الترميز
 AddDefaultCharset UTF-8
 
+# ═══════════════════════════════════════════════════════════════
+# تحسينات الأداء - Performance Optimizations
+# ═══════════════════════════════════════════════════════════════
+
+# تفعيل ضغط GZIP
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+</IfModule>
+
+# ═══════════════════════════════════════════════════════════════
+# إعدادات التخزين المؤقت - Cache Settings
+# ═══════════════════════════════════════════════════════════════
+
+# منع تخزين ملفات CSS و JS مؤقتاً (للتطوير)
+# احذف هذا القسم أو غير القيم في بيئة الإنتاج
+<IfModule mod_headers.c>
+    # منع التخزين لملفات PHP
+    <FilesMatch "\.(php)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+    
+    # تخزين قصير لملفات CSS و JS (ساعة واحدة)
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "max-age=3600, public"
+    </FilesMatch>
+    
+    # تخزين طويل للصور (أسبوع)
+    <FilesMatch "\.(ico|jpg|jpeg|png|gif|webp|svg)$">
+        Header set Cache-Control "max-age=604800, public"
+    </FilesMatch>
+    
+    # تخزين للخطوط (شهر)
+    <FilesMatch "\.(woff|woff2|ttf|otf|eot)$">
+        Header set Cache-Control "max-age=2592000, public"
+    </FilesMatch>
+</IfModule>
+
+# ═══════════════════════════════════════════════════════════════
+# الأمان - Security
+# ═══════════════════════════════════════════════════════════════
+
 # منع الوصول للملفات الحساسة
 <FilesMatch "\.(sql|sqlite|log|env)$">
     Order allow,deny
     Deny from all
 </FilesMatch>
+
+# منع تصفح المجلدات
+Options -Indexes
+
+# حماية من XSS و Clickjacking
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>

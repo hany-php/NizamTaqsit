@@ -1,6 +1,14 @@
+<?php
+$returnTo = $_GET['return_to'] ?? '';
+$backUrl = match($returnTo) {
+    'pos' => url('/pos'),
+    'installment' => url('/pos/installment'),
+    default => url('/customers')
+};
+?>
 <div class="page-header">
     <h2><span class="material-icons-round">person_add</span> إضافة عميل جديد</h2>
-    <a href="<?= url('/customers') ?>" class="btn btn-secondary">
+    <a href="<?= $backUrl ?>" class="btn btn-secondary">
         <span class="material-icons-round">arrow_forward</span> رجوع
     </a>
 </div>
@@ -8,6 +16,7 @@
 <div class="card">
     <div class="card-body">
         <form method="POST" action="<?= url('/customers') ?>" enctype="multipart/form-data">
+            <input type="hidden" name="return_to" value="<?= htmlspecialchars($returnTo) ?>">
             <h4 class="section-title">البيانات الأساسية</h4>
             <div class="form-grid">
                 <div class="form-group">
@@ -85,7 +94,7 @@
                 <button type="submit" class="btn btn-primary">
                     <span class="material-icons-round">save</span> حفظ العميل
                 </button>
-                <a href="<?= url('/customers') ?>" class="btn btn-secondary">إلغاء</a>
+                <a href="<?= $backUrl ?>" class="btn btn-secondary">إلغاء</a>
             </div>
         </form>
     </div>

@@ -4,7 +4,7 @@
             <?php if (!empty($settings['store_logo'])): ?>
                 <img src="<?= asset('images/' . $settings['store_logo']) ?>" alt="الشعار">
             <?php else: ?>
-                <span class="material-icons-round">store</span>
+                <img src="<?= asset('images/logo.png') ?>" alt="الشعار">
             <?php endif; ?>
         </div>
         <h1><?= $settings['store_name'] ?? 'نظام تقسيط' ?></h1>

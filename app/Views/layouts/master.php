@@ -23,11 +23,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
-    <link rel="stylesheet" href="<?= asset('css/responsive.css') ?>">
+    <!-- Cache Control -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     
     <?php 
+    // رقم الإصدار لتجاوز الـ Cache - غير هذا الرقم عند كل تحديث
+    $version = '1.0.1.' . date('Ymd');
+    ?>
+    
+    <!-- Stylesheets with Cache Busting -->
+    <link rel="stylesheet" href="<?= asset('css/app.css') ?>?v=<?= $version ?>">
+    <link rel="stylesheet" href="<?= asset('css/responsive.css') ?>?v=<?= $version ?>"><?php 
     // تطبيق إعدادات المظهر للمستخدم (تتجاوز الإعدادات الافتراضية)
     $userTheme = $themeConfig ?? null;
     $systemDarkMode = ($settings['dark_mode'] ?? 0);
@@ -36,6 +44,7 @@
     
     <style>
         :root {
+            /* Dynamic theme variables */
             <?php if ($userDarkMode && !empty($userTheme)): ?>
                 /* ألوان الوضع الليلي */
                 <?php if (!empty($userTheme['dark_primary_color'])): ?>
@@ -145,7 +154,7 @@
     <!-- Sidebar Overlay for Mobile -->
     <div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
     
-    <script src="<?= asset('js/app.js') ?>"></script>
+    <script src="<?= asset('js/app.js') ?>?v=<?= $version ?>"></script>
     
     <!-- Mobile Menu Script -->
     <script>

@@ -63,6 +63,9 @@
                         <td>
                             <div class="actions">
                                 <a href="<?= url('/invoices/' . $inv['id']) ?>" class="btn btn-sm btn-secondary" title="عرض"><span class="material-icons-round">visibility</span></a>
+                                <?php if ($inv['status'] !== 'cancelled'): ?>
+                                <a href="<?= url('/invoices/' . $inv['id'] . '/edit') ?>" class="btn btn-sm btn-warning" title="تعديل"><span class="material-icons-round">edit</span></a>
+                                <?php endif; ?>
                                 <a href="<?= url('/invoices/' . $inv['id'] . '/print') ?>" class="btn btn-sm btn-primary" title="طباعة" target="_blank"><span class="material-icons-round">print</span></a>
                                 <?php if ($inv['invoice_type'] === 'installment'): ?>
                                 <a href="<?= url('/invoices/' . $inv['id'] . '/contract') ?>" class="btn btn-sm btn-success" title="العقد" target="_blank"><span class="material-icons-round">description</span></a>
