@@ -8,7 +8,7 @@ class Category extends Model
 {
     protected string $table = 'categories';
     protected array $fillable = [
-        'name', 'description', 'parent_id', 'icon', 'sort_order', 'is_active'
+        'name', 'description', 'parent_id', 'icon', 'color', 'sort_order', 'is_active'
     ];
     
     /**
@@ -56,11 +56,11 @@ class Category extends Model
     public function getAllWithProductCount(): array
     {
         return $this->db->fetchAll(
-            "SELECT c.*, COUNT(p.id) as product_count 
+            "SELECT c.*, COUNT(p.id) as products_count 
              FROM {$this->table} c 
              LEFT JOIN products p ON c.id = p.category_id 
              GROUP BY c.id 
-             ORDER BY c.sort_order, c.name"
+             ORDER BY c.id DESC"
         );
     }
 }

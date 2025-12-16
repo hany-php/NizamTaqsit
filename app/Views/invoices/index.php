@@ -30,7 +30,7 @@
         </form>
     </div>
     <div class="card-body">
-        <?php $selectionType = 'invoices'; $allowDelete = false; include dirname(__DIR__) . '/partials/table_selection.php'; ?>
+        <?php $selectionType = 'invoices'; $allowDelete = true; include dirname(__DIR__) . '/partials/table_selection.php'; ?>
         
         <div class="table-responsive">
             <table class="table" id="invoicesTable">

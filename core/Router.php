@@ -32,16 +32,25 @@ class Router
      */
     private function addRoute(string $method, string $path, string $handler): self
     {
-        // تحويل المتغيرات في المسار إلى regex
+        // تحويل المتغيرات في المسار إلى regex - فقط أرقام أو حروف وأرقام بدون /
         $pattern = preg_replace('/\{([a-zA-Z_]+)\}/', '(?P<$1>[^/]+)', $path);
         $pattern = '#^' . $pattern . '$#';
+        
+        // حساب عدد الأجزاء في المسار للترتيب
+        $segmentCount = substr_count($path, '/');
         
         $this->routes[] = [
             'method' => $method,
             'path' => $path,
             'pattern' => $pattern,
-            'handler' => $handler
+            'handler' => $handler,
+            'segments' => $segmentCount
         ];
+        
+        // ترتيب المسارات: الأطول أولاً
+        usort($this->routes, function($a, $b) {
+            return $b['segments'] - $a['segments'];
+        });
         
         return $this;
     }
@@ -114,8 +123,8 @@ class Router
             throw new \Exception("الدالة غير موجودة: {$method}");
         }
         
-        // تمرير المتغيرات للدالة
-        call_user_func_array([$controller, $method], $this->params);
+        // تمرير المتغيرات للدالة - فقط القيم
+        call_user_func_array([$controller, $method], array_values($this->params));
     }
     
     /**

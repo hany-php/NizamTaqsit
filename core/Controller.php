@@ -25,6 +25,12 @@ abstract class Controller
      */
     protected function view(string $view, array $data = []): void
     {
+        // منع التخزين المؤقت للمتصفح
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Cache-Control: post-check=0, pre-check=0', false);
+        header('Pragma: no-cache');
+        header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+        
         $data = array_merge($this->data, $data);
         extract($data);
         

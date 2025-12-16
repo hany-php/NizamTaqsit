@@ -40,6 +40,34 @@
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Toast Notifications */
+.bulk-toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    padding: 15px 25px;
+    border-radius: var(--radius-sm);
+    color: white;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 9999;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+}
+.bulk-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+.bulk-toast-success { background: var(--success, #28a745); }
+.bulk-toast-error { background: var(--danger, #dc3545); }
+.bulk-toast-warning { background: var(--warning, #ffc107); color: #333; }
+.bulk-toast-info { background: var(--primary, #007bff); }
+.bulk-toast .material-icons-round { font-size: 20px; }
 </style>
 
 <div class="selection-bar" id="selectionBar">
@@ -143,7 +171,7 @@ function exportSelected(format) {
 
 function deleteSelected() {
     if (selectedIds.length === 0) {
-        alert('لم يتم تحديد أي عناصر');
+        showToast('لم يتم تحديد أي عناصر', 'warning');
         return;
     }
     
@@ -151,20 +179,71 @@ function deleteSelected() {
         return;
     }
     
-    // Submit delete form
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '<?= url('/' . ($selectionType ?? 'items') . '/bulk-delete') ?>';
+    // Use AJAX to delete and stay on same page
+    const deleteUrl = '<?= url('/' . ($selectionType ?? 'items') . '/bulk-delete') ?>';
     
-    selectedIds.forEach(id => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'ids[]';
-        input.value = id;
-        form.appendChild(input);
+    fetch(deleteUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: 'ids=' + selectedIds.join(',')
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            // Remove deleted rows from table
+            selectedIds.forEach(id => {
+                const checkbox = document.querySelector('.row-checkbox[data-id="' + id + '"]');
+                if (checkbox) {
+                    const row = checkbox.closest('tr');
+                    if (row) {
+                        row.style.transition = 'opacity 0.3s, transform 0.3s';
+                        row.style.opacity = '0';
+                        row.style.transform = 'translateX(-20px)';
+                        setTimeout(() => row.remove(), 300);
+                    }
+                }
+            });
+            clearSelection();
+        } else {
+            showToast(data.message || 'حدث خطأ أثناء الحذف', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Delete error:', error);
+        showToast('حدث خطأ في الاتصال بالخادم', 'error');
     });
+}
+
+// Toast notification function
+function showToast(message, type = 'info') {
+    // Remove existing toast
+    const existingToast = document.querySelector('.bulk-toast');
+    if (existingToast) existingToast.remove();
     
-    document.body.appendChild(form);
-    form.submit();
+    const toast = document.createElement('div');
+    toast.className = 'bulk-toast bulk-toast-' + type;
+    
+    const icons = {
+        success: 'check_circle',
+        error: 'error',
+        warning: 'warning',
+        info: 'info'
+    };
+    
+    toast.innerHTML = '<span class="material-icons-round">' + (icons[type] || 'info') + '</span> ' + message;
+    document.body.appendChild(toast);
+    
+    // Trigger animation
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
 }
 </script>

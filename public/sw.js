@@ -2,7 +2,7 @@
 // للعمل بدون إنترنت (PWA)
 
 // تحديث رقم الإصدار عند أي تغيير في الملفات
-const CACHE_VERSION = 'v2-' + new Date().toISOString().split('T')[0];
+const CACHE_VERSION = 'v3-no-html-cache-' + new Date().toISOString().split('T')[0];
 const CACHE_NAME = 'nizamtaqsit-' + CACHE_VERSION;
 const OFFLINE_URL = '/offline.html';
 
@@ -90,48 +90,44 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // للصفحات الأخرى، استخدم Cache First مع تحديث في الخلفية
+  // للصفحات HTML، استخدم Network First دائماً (حل مشكلة الكاش)
+  if (event.request.headers.get('accept')?.includes('text/html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // لا نخزن صفحات HTML أبداً - نريدها دائماً طازجة
+          return response;
+        })
+        .catch(() => {
+          // عند فشل الاتصال، اعرض صفحة أوفلاين
+          return caches.match(OFFLINE_URL);
+        })
+    );
+    return;
+  }
+  
+  // للموارد الأخرى (صور، خطوط)، استخدم Cache First
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      // إذا وجد في الكاش، أعده
       if (cachedResponse) {
-        // تحديث الكاش في الخلفية
-        fetch(event.request).then((response) => {
-          if (response && response.status === 200 && response.type === 'basic') {
-            caches.open(CACHE_NAME).then((cache) => {
-              if (!event.request.url.includes('.php')) {
-                cache.put(event.request, response);
-              }
-            });
-          }
-        });
         return cachedResponse;
       }
       
-      // حاول الاتصال بالإنترنت
       return fetch(event.request)
         .then((response) => {
-          // لا تخزن الاستجابات الفاشلة
           if (!response || response.status !== 200 || response.type !== 'basic') {
             return response;
           }
           
-          // خزّن نسخة من الاستجابة
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
-            // لا تخزن صفحات PHP الديناميكية
-            if (!event.request.url.includes('.php')) {
-              cache.put(event.request, responseToCache);
-            }
+            cache.put(event.request, responseToCache);
           });
           
           return response;
         })
         .catch(() => {
-          // عند فشل الاتصال، اعرض صفحة أوفلاين للصفحات HTML
-          if (event.request.headers.get('accept')?.includes('text/html')) {
-            return caches.match(OFFLINE_URL);
-          }
+          return caches.match(OFFLINE_URL);
         });
     })
   );

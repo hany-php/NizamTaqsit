@@ -598,4 +598,116 @@ class InvoiceController extends Controller
             'plan' => $plan
         ]);
     }
+    
+    /**
+     * حذف فاتورة
+     */
+    public function destroy(int $id): void
+    {
+        $this->requireRole(['admin']);
+        
+        $invoice = $this->invoiceModel->find($id);
+        
+        if (!$invoice) {
+            $this->error('الفاتورة غير موجودة');
+            $this->redirect(url('/invoices'));
+            return;
+        }
+        
+        $this->db->beginTransaction();
+        
+        try {
+            // إرجاع المخزون
+            $items = $this->invoiceModel->getItems($id);
+            foreach ($items as $item) {
+                $this->productModel->updateQuantity($item['product_id'], $item['quantity']);
+            }
+            
+            // حذف البيانات المرتبطة
+            $this->db->delete('invoice_items', 'invoice_id = ?', [$id]);
+            $this->db->delete('installments', 'invoice_id = ?', [$id]);
+            $this->db->delete('payments', 'invoice_id = ?', [$id]);
+            
+            // حذف الفاتورة
+            $this->invoiceModel->delete($id);
+            
+            $this->db->commit();
+            
+            $this->logActivity('delete', 'invoice', $id, 'حذف فاتورة: ' . $invoice['invoice_number']);
+            $this->success('تم حذف الفاتورة بنجاح');
+            
+        } catch (\Exception $e) {
+            $this->db->rollback();
+            $this->error('حدث خطأ أثناء الحذف: ' . $e->getMessage());
+        }
+        
+        $this->redirect(url('/invoices'));
+    }
+    
+    /**
+     * حذف متعدد للفواتير
+     */
+    public function bulkDelete(): void
+    {
+        $this->requireRole(['admin']);
+        
+        $ids = $this->input('ids', []);
+        
+        if (empty($ids)) {
+            $this->json(['success' => false, 'message' => 'لم يتم تحديد أي فواتير']);
+            return;
+        }
+        
+        if (!is_array($ids)) {
+            $ids = explode(',', $ids);
+        }
+        
+        $ids = array_map('intval', $ids);
+        $deletedCount = 0;
+        $errors = [];
+        
+        foreach ($ids as $id) {
+            $invoice = $this->invoiceModel->find($id);
+            if (!$invoice) {
+                continue;
+            }
+            
+            $this->db->beginTransaction();
+            
+            try {
+                // إرجاع المخزون
+                $items = $this->invoiceModel->getItems($id);
+                foreach ($items as $item) {
+                    $this->productModel->updateQuantity($item['product_id'], $item['quantity']);
+                }
+                
+                // حذف البيانات المرتبطة
+                $this->db->delete('invoice_items', 'invoice_id = ?', [$id]);
+                $this->db->delete('installments', 'invoice_id = ?', [$id]);
+                $this->db->delete('payments', 'invoice_id = ?', [$id]);
+                
+                // حذف الفاتورة
+                $this->invoiceModel->delete($id);
+                
+                $this->db->commit();
+                
+                $this->logActivity('delete', 'invoice', $id, 'حذف فاتورة (حذف متعدد): ' . $invoice['invoice_number']);
+                $deletedCount++;
+                
+            } catch (\Exception $e) {
+                $this->db->rollback();
+                $errors[] = $invoice['invoice_number'];
+            }
+        }
+        
+        if ($deletedCount > 0) {
+            $message = "تم حذف {$deletedCount} فاتورة بنجاح";
+            if (!empty($errors)) {
+                $message .= " (فشل حذف: " . implode(', ', $errors) . ")";
+            }
+            $this->json(['success' => true, 'message' => $message]);
+        } else {
+            $this->json(['success' => false, 'message' => 'لم يتم حذف أي فاتورة']);
+        }
+    }
 }

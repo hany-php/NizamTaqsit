@@ -265,6 +265,61 @@ class ProductController extends Controller
     }
     
     /**
+     * حذف متعدد للمنتجات
+     */
+    public function bulkDelete(): void
+    {
+        $this->requireRole(['admin']);
+        
+        $ids = $this->input('ids', []);
+        
+        if (empty($ids)) {
+            $this->json(['success' => false, 'message' => 'لم يتم تحديد أي منتجات']);
+            return;
+        }
+        
+        if (!is_array($ids)) {
+            $ids = explode(',', $ids);
+        }
+        
+        $ids = array_map('intval', $ids);
+        $deletedCount = 0;
+        $skippedCount = 0;
+        
+        foreach ($ids as $id) {
+            $product = $this->productModel->find($id);
+            if (!$product) {
+                continue;
+            }
+            
+            // التحقق من عدم وجود فواتير مرتبطة
+            $invoiceCount = $this->db->fetchColumn(
+                "SELECT COUNT(*) FROM invoice_items WHERE product_id = ?",
+                [$id]
+            );
+            
+            if ($invoiceCount > 0) {
+                $skippedCount++;
+                continue;
+            }
+            
+            $this->productModel->delete($id);
+            $this->logActivity('delete', 'product', $id, 'حذف منتج (حذف متعدد): ' . $product['name']);
+            $deletedCount++;
+        }
+        
+        if ($deletedCount > 0) {
+            $message = "تم حذف {$deletedCount} منتج بنجاح";
+            if ($skippedCount > 0) {
+                $message .= " (تم تخطي {$skippedCount} لوجود فواتير مرتبطة)";
+            }
+            $this->json(['success' => true, 'message' => $message]);
+        } else {
+            $this->json(['success' => false, 'message' => 'لم يتم حذف أي منتج - جميعها لديها فواتير مرتبطة']);
+        }
+    }
+    
+    /**
      * بحث في المنتجات
      */
     public function search(): void

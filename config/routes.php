@@ -29,20 +29,26 @@ $router->get('/dashboard/stats', 'DashboardController@stats');
 $router->get('/products', 'ProductController@index');
 $router->get('/products/create', 'ProductController@create');
 $router->post('/products', 'ProductController@store');
+$router->post('/products/bulk-delete', 'ProductController@bulkDelete');
+$router->get('/products/search', 'ProductController@search');
+$router->get('/products/barcode/{code}', 'ProductController@findByBarcode');
 $router->get('/products/{id}', 'ProductController@show');
 $router->get('/products/{id}/edit', 'ProductController@edit');
 $router->post('/products/{id}', 'ProductController@update');
 $router->post('/products/{id}/delete', 'ProductController@destroy');
-$router->get('/products/search', 'ProductController@search');
-$router->get('/products/barcode/{code}', 'ProductController@findByBarcode');
 
 // ══════════════════════════════════════════════════════════════════
 // التصنيفات
 // ══════════════════════════════════════════════════════════════════
 $router->get('/categories', 'CategoryController@index');
 $router->post('/categories', 'CategoryController@store');
-$router->post('/categories/{id}', 'CategoryController@update');
+// المسارات المحددة أولاً قبل {id}
+$router->post('/categories/{id}/move-all', 'CategoryController@moveAllProducts');
+$router->post('/categories/{id}/move-product', 'CategoryController@moveProduct');
+$router->post('/categories/{id}/delete-product', 'CategoryController@deleteProduct');
 $router->post('/categories/{id}/delete', 'CategoryController@destroy');
+$router->post('/categories/{id}', 'CategoryController@update');
+$router->get('/categories/{id}', 'CategoryController@show');
 
 // ══════════════════════════════════════════════════════════════════
 // العملاء
@@ -51,6 +57,7 @@ $router->get('/customers', 'CustomerController@index');
 $router->get('/customers/create', 'CustomerController@create');
 $router->post('/customers', 'CustomerController@store');
 $router->post('/customers/store_ajax', 'CustomerController@storeAjax');
+$router->post('/customers/bulk-delete', 'CustomerController@bulkDelete');
 $router->get('/customers/{id}', 'CustomerController@show');
 $router->get('/customers/{id}/edit', 'CustomerController@edit');
 $router->post('/customers/{id}', 'CustomerController@update');
@@ -70,12 +77,14 @@ $router->get('/pos/calculate', 'InvoiceController@calculateInstallment');
 // الفواتير
 // ══════════════════════════════════════════════════════════════════
 $router->get('/invoices', 'InvoiceController@index');
+$router->post('/invoices/bulk-delete', 'InvoiceController@bulkDelete');
 $router->get('/invoices/{id}', 'InvoiceController@show');
 $router->get('/invoices/{id}/edit', 'InvoiceController@edit');
 $router->post('/invoices/{id}', 'InvoiceController@update');
 $router->get('/invoices/{id}/print', 'InvoiceController@print');
 $router->get('/invoices/{id}/contract', 'InvoiceController@contract');
 $router->post('/invoices/{id}/cancel', 'InvoiceController@cancel');
+$router->post('/invoices/{id}/delete', 'InvoiceController@destroy');
 
 // ══════════════════════════════════════════════════════════════════
 // الأقساط

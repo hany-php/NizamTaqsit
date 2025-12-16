@@ -242,6 +242,61 @@ class CustomerController extends Controller
         $this->redirect(url('/customers'));
     }
     
+    /**
+     * حذف متعدد للعملاء
+     */
+    public function bulkDelete(): void
+    {
+        $this->requireRole(['admin']);
+        
+        $ids = $this->input('ids', []);
+        
+        if (empty($ids)) {
+            $this->json(['success' => false, 'message' => 'لم يتم تحديد أي عملاء']);
+            return;
+        }
+        
+        if (!is_array($ids)) {
+            $ids = explode(',', $ids);
+        }
+        
+        $ids = array_map('intval', $ids);
+        $deletedCount = 0;
+        $skippedCount = 0;
+        
+        foreach ($ids as $id) {
+            $customer = $this->customerModel->find($id);
+            if (!$customer) {
+                continue;
+            }
+            
+            // التحقق من عدم وجود فواتير مرتبطة
+            $invoiceCount = $this->db->fetchColumn(
+                "SELECT COUNT(*) FROM invoices WHERE customer_id = ?",
+                [$id]
+            );
+            
+            if ($invoiceCount > 0) {
+                $skippedCount++;
+                continue;
+            }
+            
+            $this->customerModel->delete($id);
+            $this->logActivity('delete', 'customer', $id, 'حذف عميل (حذف متعدد): ' . $customer['full_name']);
+            $deletedCount++;
+        }
+        
+        if ($deletedCount > 0) {
+            $message = "تم حذف {$deletedCount} عميل بنجاح";
+            if ($skippedCount > 0) {
+                $message .= " (تم تخطي {$skippedCount} لوجود فواتير مرتبطة)";
+            }
+            $this->json(['success' => true, 'message' => $message]);
+        } else {
+            $this->json(['success' => false, 'message' => 'لم يتم حذف أي عميل - جميعهم لديهم فواتير مرتبطة']);
+        }
+    }
+    
     public function search(): void
     {
         $query = $this->input('q', '');
