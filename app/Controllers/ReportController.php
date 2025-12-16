@@ -212,19 +212,47 @@ class ReportController extends Controller
      */
     public function inventory(): void
     {
+        $perPage = (int) ($_GET['per_page'] ?? 15);
+        $editedId = (int) ($_GET['edited'] ?? 0);
+        
         $db = \Core\Database::getInstance();
+        
+        // إذا كان هناك منتج معدّل، احسب صفحته
+        $page = (int) ($_GET['page'] ?? 1);
+        if ($editedId && !isset($_GET['page'])) {
+            // ابحث عن موقع المنتج في الترتيب
+            $position = $db->fetchColumn(
+                "SELECT COUNT(*) FROM products WHERE quantity < (SELECT quantity FROM products WHERE id = ?) 
+                 OR (quantity = (SELECT quantity FROM products WHERE id = ?) AND id <= ?)",
+                [$editedId, $editedId, $editedId]
+            );
+            if ($position) {
+                $page = ceil($position / $perPage);
+            }
+        }
+        
+        $totalCount = $db->fetchColumn("SELECT COUNT(*) FROM products");
+        $pagination = new \Core\Pagination($totalCount, $perPage, $page);
+        
         $products = $db->fetchAll(
             "SELECT p.*, c.name as category_name 
              FROM products p
              LEFT JOIN categories c ON p.category_id = c.id
-             ORDER BY p.quantity ASC"
+             ORDER BY p.quantity ASC
+             LIMIT {$pagination->getLimit()} OFFSET {$pagination->getOffset()}"
         );
-        $lowStock = array_filter($products, fn($p) => $p['quantity'] <= $p['min_quantity']);
+        
+        // المنتجات منخفضة المخزون (للتنبيه فقط)
+        $lowStock = $db->fetchAll(
+            "SELECT * FROM products WHERE quantity <= min_quantity"
+        );
 
         $this->view('reports/inventory', [
             'title' => 'تقرير المخزون',
             'products' => $products,
-            'lowStock' => $lowStock
+            'lowStock' => $lowStock,
+            'pagination' => $pagination
         ]);
     }
 }
+

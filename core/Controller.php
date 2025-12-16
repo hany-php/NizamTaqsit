@@ -144,9 +144,22 @@ abstract class Controller
         $roles = is_array($roles) ? $roles : [$roles];
         
         if (!in_array($userRole, $roles)) {
+            // إذا كان AJAX request، أرسل JSON
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'ليس لديك صلاحية لهذا الإجراء'], 403);
+            }
             $this->error('ليس لديك صلاحية للوصول لهذه الصفحة');
             $this->redirect('/dashboard');
         }
+    }
+    
+    /**
+     * التحقق من أن الطلب AJAX
+     */
+    protected function isAjax(): bool
+    {
+        return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+               strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
     }
     
     /**

@@ -20,11 +20,15 @@ class UserController extends Controller
      */
     public function index(): void
     {
-        $users = $this->userModel->all();
+        $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+        $perPage = 15;
+        
+        $result = $this->userModel->paginate($page, $perPage);
         
         $this->view('users/index', [
             'title' => 'إدارة المستخدمين',
-            'users' => $users
+            'users' => $result['data'],
+            'pagination' => $result
         ]);
     }
 

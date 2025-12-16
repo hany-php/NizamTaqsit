@@ -1,3 +1,4 @@
+<?php if (isset($pagination) && $pagination !== null): ?>
 <div class="pagination-container">
     <div class="pagination-info">
         عرض <?= $pagination->getStartItem() ?> - <?= $pagination->getEndItem() ?> من <?= $pagination->getTotalItems() ?>
@@ -54,3 +55,5 @@
 .page-dots { padding: 0 8px; color: var(--text-muted); }
 @media (max-width: 768px) { .pagination-container { justify-content: center; } }
 </style>
+<?php endif; ?>
+

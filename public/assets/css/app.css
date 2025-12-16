@@ -570,12 +570,26 @@ a:hover {
   color: var(--text-secondary);
 }
 
+/* ألوان متناوبة للصفوف */
+.table tbody tr:nth-child(even) {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.dark-mode .table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* تأثير التحويم */
 .table tbody tr:hover {
-  background: var(--bg-main);
+  background: rgba(30, 136, 229, 0.08) !important;
 }
 
 .table .overdue-row {
-  background: rgba(229, 57, 53, 0.05);
+  background: rgba(255, 152, 0, 0.1) !important;
+}
+
+.table .overdue-row:hover {
+  background: rgba(255, 152, 0, 0.18) !important;
 }
 
 /* ══════════════════════════════════════════════════════════════════ */
@@ -1150,21 +1164,20 @@ select.form-control {
     flex-direction: column;
     gap: 15px;
   }
-  
+
   .summary-item {
     min-width: auto;
     width: 100%;
   }
-  
+
   .filters {
     flex-direction: column;
     align-items: stretch;
     gap: 15px;
   }
-  
+
   .filters .btn {
     width: 100%;
     justify-content: center;
   }
 }
-

@@ -31,7 +31,7 @@
                 <tbody>
                     <?php foreach ($profits as $item): ?>
                     <tr>
-                        <td class="select-checkbox"><input type="checkbox" class="row-checkbox" data-id="<?= $item['product_id'] ?? $item['name'] ?>" onclick="toggleRowSelect(this)"></td>
+                        <td class="select-checkbox"><input type="checkbox" class="row-checkbox" data-id="<?= $item['id'] ?? $item['product_id'] ?? '' ?>" onclick="toggleRowSelect(this)"></td>
                         <td><strong><?= $item['name'] ?></strong></td>
                         <td><?= $item['total_quantity'] ?></td>
                         <td><?= formatMoney($item['total_revenue']) ?></td>
@@ -43,6 +43,8 @@
                 </tbody>
             </table>
         </div>
+        
+        <?php include dirname(__DIR__) . '/partials/pagination.php'; ?>
     </div>
 </div>
 

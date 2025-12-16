@@ -226,8 +226,15 @@ class ProductController extends Controller
         $this->productModel->update($id, $data);
         
         $this->logActivity('update', 'product', $id, 'تعديل منتج: ' . $data['name']);
-        $this->success('تم تحديث المنتج بنجاح');
-        $this->redirect(url('/products'));
+        $this->success('تم تحديث المنتج "' . $data['name'] . '" بنجاح');
+        
+        // الرجوع للصفحة الأصلية إن وجدت مع تمييز المنتج المعدّل
+        $return = $this->input('return', $_GET['return'] ?? '');
+        if ($return === 'inventory') {
+            $this->redirect(url('/reports/inventory') . '?edited=' . $id);
+        } else {
+            $this->redirect(url('/products'));
+        }
     }
     
     /**

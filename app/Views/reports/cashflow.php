@@ -20,7 +20,7 @@
             <div class="stat-card-mini"><span class="material-icons-round" style="color:#43a047">payments</span><div><strong><?= formatMoney($summary['cash_sales'] ?? 0) ?></strong><span>مبيعات نقدية</span></div></div>
             <div class="stat-card-mini"><span class="material-icons-round" style="color:#1e88e5">credit_score</span><div><strong><?= formatMoney($summary['down_payments'] ?? 0) ?></strong><span>دفعات مقدمة</span></div></div>
             <div class="stat-card-mini"><span class="material-icons-round" style="color:#ff9800">receipt</span><div><strong><?= formatMoney($totalPayments) ?></strong><span>تحصيلات أقساط</span></div></div>
-            <div class="stat-card-mini"><span class="material-icons-round" style="color:#9c27b0">account_balance_wallet</span><div><strong><?= formatMoney(($summary['cash_sales'] ?? 0) + $totalPayments) ?></strong><span>إجمالي النقد</span></div></div>
+            <div class="stat-card-mini"><span class="material-icons-round" style="color:#9c27b0">account_balance_wallet</span><div><strong><?= formatMoney($totalCash ?? 0) ?></strong><span>إجمالي النقد</span></div></div>
         </div>
         
         <h4 style="margin:25px 0 15px">التدفق اليومي</h4>
@@ -44,6 +44,8 @@
                 </tbody>
             </table>
         </div>
+        
+        <?php include dirname(__DIR__) . '/partials/pagination.php'; ?>
     </div>
 </div>
 
@@ -53,10 +55,10 @@ const ctx = document.getElementById('cashflowChart').getContext('2d');
 new Chart(ctx, {
     type: 'bar',
     data: {
-        labels: <?= json_encode(array_column($inflows, 'date')) ?>,
+        labels: <?= json_encode(array_column($allInflows, 'date')) ?>,
         datasets: [{
             label: 'التحصيلات',
-            data: <?= json_encode(array_column($inflows, 'total')) ?>,
+            data: <?= json_encode(array_column($allInflows, 'total')) ?>,
             backgroundColor: 'rgba(30, 136, 229, 0.8)',
             borderRadius: 5
         }]

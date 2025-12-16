@@ -45,7 +45,7 @@ class DashboardController extends Controller
         // إحصائيات عامة
         $stats = [
             'products_count' => $productModel->count('is_active = 1'),
-            'customers_count' => $customerModel->count('is_active = 1'),
+            'customers_count' => $customerModel->count(), // عد جميع العملاء
             'low_stock_count' => count($productModel->getLowStock()),
             'active_installments' => $invoiceModel->count("invoice_type = 'installment' AND status = 'active'"),
         ];

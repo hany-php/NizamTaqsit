@@ -1,6 +1,7 @@
+<?php $return = $_GET['return'] ?? ''; ?>
 <div class="page-header">
     <h2><span class="material-icons-round">edit</span> تعديل: <?= $product['name'] ?></h2>
-    <a href="<?= url('/products') ?>" class="btn btn-secondary">
+    <a href="<?= $return === 'inventory' ? url('/reports/inventory') : url('/products') ?>" class="btn btn-secondary">
         <span class="material-icons-round">arrow_forward</span> رجوع
     </a>
 </div>
@@ -8,6 +9,9 @@
 <div class="card">
     <div class="card-body">
         <form method="POST" action="<?= url('/products/' . $product['id']) ?>" enctype="multipart/form-data">
+            <?php if ($return): ?>
+            <input type="hidden" name="return" value="<?= htmlspecialchars($return) ?>">
+            <?php endif; ?>
             <div class="form-grid">
                 <div class="form-group">
                     <label>اسم المنتج *</label>
@@ -101,7 +105,7 @@
                 <button type="submit" class="btn btn-primary">
                     <span class="material-icons-round">save</span> حفظ التعديلات
                 </button>
-                <a href="<?= url('/products') ?>" class="btn btn-secondary">إلغاء</a>
+                <a href="<?= $return === 'inventory' ? url('/reports/inventory') : url('/products') ?>" class="btn btn-secondary">إلغاء</a>
             </div>
         </form>
     </div>

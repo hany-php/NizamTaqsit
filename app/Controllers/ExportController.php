@@ -378,14 +378,33 @@ class ExportController extends Controller
     {
         $from = $_GET['from'] ?? date('Y-m-01');
         $to = $_GET['to'] ?? date('Y-m-d');
+        $ids = $_GET['ids'] ?? '';
+        
+        $where = "WHERE 1=1";
+        $params = [];
+        
+        // فلترة حسب الفواتير المحددة
+        if ($ids) {
+            $idList = array_filter(explode(',', $ids), 'is_numeric');
+            if (!empty($idList)) {
+                $placeholders = implode(',', array_fill(0, count($idList), '?'));
+                $where .= " AND i.id IN ($placeholders)";
+                $params = array_merge($params, $idList);
+            }
+        } else {
+            // فلترة حسب التاريخ فقط إذا لم يتم تحديد فواتير
+            $where .= " AND DATE(i.created_at) >= ? AND DATE(i.created_at) <= ?";
+            $params[] = $from;
+            $params[] = $to;
+        }
         
         $invoices = $this->db->fetchAll(
             "SELECT i.*, c.full_name as customer_name 
              FROM invoices i 
              LEFT JOIN customers c ON i.customer_id = c.id 
-             WHERE DATE(i.created_at) >= ? AND DATE(i.created_at) <= ?
+             $where
              ORDER BY i.created_at DESC",
-            [$from, $to]
+            $params
         );
         
         $headers = ['رقم الفاتورة', 'العميل', 'النوع', 'الإجمالي', 'التاريخ'];
@@ -410,15 +429,33 @@ class ExportController extends Controller
     {
         $from = $_GET['from'] ?? date('Y-m-01');
         $to = $_GET['to'] ?? date('Y-m-d');
+        $ids = $_GET['ids'] ?? '';
+        
+        $where = "WHERE 1=1";
+        $params = [];
+        
+        // فلترة حسب المدفوعات المحددة
+        if ($ids) {
+            $idList = array_filter(explode(',', $ids), 'is_numeric');
+            if (!empty($idList)) {
+                $placeholders = implode(',', array_fill(0, count($idList), '?'));
+                $where .= " AND p.id IN ($placeholders)";
+                $params = array_merge($params, $idList);
+            }
+        } else {
+            $where .= " AND DATE(p.payment_date) >= ? AND DATE(p.payment_date) <= ?";
+            $params[] = $from;
+            $params[] = $to;
+        }
         
         $payments = $this->db->fetchAll(
             "SELECT p.*, i.invoice_number, c.full_name as customer_name
              FROM payments p
              LEFT JOIN invoices i ON p.invoice_id = i.id
              LEFT JOIN customers c ON i.customer_id = c.id
-             WHERE DATE(p.payment_date) >= ? AND DATE(p.payment_date) <= ?
+             $where
              ORDER BY p.payment_date DESC",
-            [$from, $to]
+            $params
         );
         
         $headers = ['رقم الإيصال', 'العميل', 'الفاتورة', 'المبلغ', 'التاريخ'];
@@ -441,14 +478,30 @@ class ExportController extends Controller
      */
     public function overdueReport(string $format): void
     {
+        $ids = $_GET['ids'] ?? '';
+        
+        $where = "WHERE inst.status IN ('pending', 'partial', 'overdue') AND inst.due_date < date('now')";
+        $params = [];
+        
+        // فلترة حسب الأقساط المحددة
+        if ($ids) {
+            $idList = array_filter(explode(',', $ids), 'is_numeric');
+            if (!empty($idList)) {
+                $placeholders = implode(',', array_fill(0, count($idList), '?'));
+                $where .= " AND inst.id IN ($placeholders)";
+                $params = array_merge($params, $idList);
+            }
+        }
+        
         $installments = $this->db->fetchAll(
             "SELECT inst.*, i.invoice_number, c.full_name as customer_name, c.phone as customer_phone,
                     julianday('now') - julianday(inst.due_date) as days_overdue
              FROM installments inst
              JOIN invoices i ON inst.invoice_id = i.id
              JOIN customers c ON i.customer_id = c.id
-             WHERE inst.status IN ('pending', 'partial') AND inst.due_date < date('now')
-             ORDER BY inst.due_date ASC"
+             $where
+             ORDER BY inst.due_date ASC",
+            $params
         );
         
         $headers = ['العميل', 'الهاتف', 'رقم الفاتورة', 'رقم القسط', 'المبلغ', 'تاريخ الاستحقاق', 'أيام التأخير'];
@@ -506,12 +559,29 @@ class ExportController extends Controller
      */
     public function inventoryReport(string $format): void
     {
-        $products = $this->db->fetchAll(
-            "SELECT p.*, c.name as category_name 
-             FROM products p
-             LEFT JOIN categories c ON p.category_id = c.id
-             ORDER BY p.quantity ASC"
-        );
+        $ids = $_GET['ids'] ?? '';
+        
+        if (!empty($ids)) {
+            // تصدير المنتجات المحددة فقط
+            $idList = array_map('intval', explode(',', $ids));
+            $placeholders = implode(',', array_fill(0, count($idList), '?'));
+            $products = $this->db->fetchAll(
+                "SELECT p.*, c.name as category_name 
+                 FROM products p
+                 LEFT JOIN categories c ON p.category_id = c.id
+                 WHERE p.id IN ($placeholders)
+                 ORDER BY p.quantity ASC",
+                $idList
+            );
+        } else {
+            // تصدير جميع المنتجات
+            $products = $this->db->fetchAll(
+                "SELECT p.*, c.name as category_name 
+                 FROM products p
+                 LEFT JOIN categories c ON p.category_id = c.id
+                 ORDER BY p.quantity ASC"
+            );
+        }
         
         $headers = ['المنتج', 'التصنيف', 'الكمية', 'حد التنبيه', 'السعر النقدي', 'قيمة المخزون', 'الحالة'];
         $rows = [];
@@ -538,19 +608,33 @@ class ExportController extends Controller
     {
         $from = $_GET['from'] ?? date('Y-m-01');
         $to = $_GET['to'] ?? date('Y-m-d');
+        $ids = $_GET['ids'] ?? '';
+        
+        $where = "WHERE DATE(i.created_at) >= ? AND DATE(i.created_at) <= ?";
+        $params = [$from, $to];
+        
+        // فلترة حسب المنتجات المحددة
+        if ($ids) {
+            $idList = array_filter(explode(',', $ids), 'is_numeric');
+            if (!empty($idList)) {
+                $placeholders = implode(',', array_fill(0, count($idList), '?'));
+                $where .= " AND p.id IN ($placeholders)";
+                $params = array_merge($params, $idList);
+            }
+        }
         
         $profits = $this->db->fetchAll(
-            "SELECT p.name, 
+            "SELECT p.name, p.id,
                     SUM(ii.quantity) as total_quantity,
-                    SUM(ii.subtotal) as total_revenue,
+                    SUM(ii.total_price) as total_revenue,
                     SUM(ii.quantity * p.cost_price) as total_cost,
-                    SUM(ii.subtotal) - SUM(ii.quantity * p.cost_price) as total_profit
+                    SUM(ii.total_price) - SUM(ii.quantity * p.cost_price) as total_profit
              FROM invoice_items ii
              JOIN products p ON ii.product_id = p.id
              JOIN invoices i ON ii.invoice_id = i.id
-             WHERE DATE(i.created_at) >= ? AND DATE(i.created_at) <= ?
+             $where
              GROUP BY p.id ORDER BY total_profit DESC",
-            [$from, $to]
+            $params
         );
         
         $headers = ['المنتج', 'الكمية', 'الإيرادات', 'التكلفة', 'الربح', 'الهامش %'];
@@ -612,14 +696,29 @@ class ExportController extends Controller
     {
         $from = $_GET['from'] ?? date('Y-m-01');
         $to = $_GET['to'] ?? date('Y-m-d');
+        $ids = $_GET['ids'] ?? '';
         
-        $inflows = $this->db->fetchAll(
-            "SELECT DATE(payment_date) as date, SUM(amount) as total
-             FROM payments
-             WHERE DATE(payment_date) >= ? AND DATE(payment_date) <= ?
-             GROUP BY DATE(payment_date) ORDER BY date DESC",
-            [$from, $to]
-        );
+        if (!empty($ids)) {
+            // تصدير التواريخ المحددة فقط
+            $dates = explode(',', $ids);
+            $placeholders = implode(',', array_fill(0, count($dates), '?'));
+            $inflows = $this->db->fetchAll(
+                "SELECT DATE(payment_date) as date, SUM(amount) as total
+                 FROM payments
+                 WHERE DATE(payment_date) IN ($placeholders)
+                 GROUP BY DATE(payment_date) ORDER BY date DESC",
+                $dates
+            );
+        } else {
+            // تصدير كل التواريخ
+            $inflows = $this->db->fetchAll(
+                "SELECT DATE(payment_date) as date, SUM(amount) as total
+                 FROM payments
+                 WHERE DATE(payment_date) >= ? AND DATE(payment_date) <= ?
+                 GROUP BY DATE(payment_date) ORDER BY date DESC",
+                [$from, $to]
+            );
+        }
         
         $headers = ['التاريخ', 'المبلغ'];
         $rows = [];
