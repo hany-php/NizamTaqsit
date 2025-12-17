@@ -39,6 +39,7 @@
                  data-category="<?= $product['category_id'] ?>"
                  data-barcode="<?= $product['barcode'] ?>"
                  data-quantity="<?= $product['quantity'] ?>">
+                <div class="product-qty-badge" style="display: none;">0</div>
                 <div class="product-image">
                     <?php if ($product['image']): ?>
                         <img src="<?= upload('products/' . $product['image']) ?>" alt="<?= $product['name'] ?>" loading="lazy" decoding="async">
@@ -227,6 +228,8 @@
     cursor: pointer;
     transition: all 0.2s;
     text-align: center;
+    position: relative;
+    border: 2px solid transparent;
 }
 
 .product-card:hover {
@@ -234,9 +237,42 @@
     box-shadow: var(--shadow);
 }
 
+.product-card.selected {
+    border-color: var(--primary);
+    background: linear-gradient(135deg, rgba(30, 136, 229, 0.08), rgba(30, 136, 229, 0.03));
+    box-shadow: 0 0 15px rgba(30, 136, 229, 0.3);
+}
+
 .product-card.out-of-stock {
     opacity: 0.5;
     pointer-events: none;
+}
+
+/* شارة الكمية على كارت المنتج */
+.product-qty-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark, #1565C0));
+    color: white;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 3px 10px rgba(30, 136, 229, 0.4);
+    z-index: 10;
+    animation: badge-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes badge-pop {
+    0% { transform: scale(0); }
+    80% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
 .product-image {
@@ -1078,6 +1114,7 @@ function renderCart() {
     if (cart.length === 0) {
         container.innerHTML = '<p class="empty-cart">السلة فارغة</p>';
         updateTotals();
+        updateProductCardSelection();
         return;
     }
     
@@ -1100,6 +1137,33 @@ function renderCart() {
     `).join('');
     
     updateTotals();
+    updateProductCardSelection();
+}
+
+// تحديث حالة تحديد كروت المنتجات وإظهار الكمية
+function updateProductCardSelection() {
+    // إزالة التحديد من كل الكروت أولاً
+    document.querySelectorAll('.product-card').forEach(card => {
+        card.classList.remove('selected');
+        const badge = card.querySelector('.product-qty-badge');
+        if (badge) {
+            badge.style.display = 'none';
+            badge.textContent = '0';
+        }
+    });
+    
+    // إضافة التحديد للمنتجات الموجودة في السلة
+    cart.forEach(item => {
+        const card = document.querySelector(`.product-card[data-id="${item.id}"]`);
+        if (card) {
+            card.classList.add('selected');
+            const badge = card.querySelector('.product-qty-badge');
+            if (badge) {
+                badge.style.display = 'flex';
+                badge.textContent = item.quantity;
+            }
+        }
+    });
 }
 
 // تغيير الكمية

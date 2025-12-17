@@ -12,11 +12,11 @@
     <title><?= $pageTitle ?? 'نظام تقسيط' ?> - <?= $settings['store_name'] ?? 'نظام تقسيط' ?></title>
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="<?= asset('manifest.json') ?>">
+    <link rel="manifest" href="manifest.json">
     
     <!-- Icons -->
-    <link rel="icon" type="image/png" sizes="192x192" href="<?= asset('assets/icons/icon-192x192.png') ?>">
-    <link rel="apple-touch-icon" href="<?= asset('assets/icons/icon-192x192.png') ?>">
+    <link rel="icon" type="image/x-icon" href="<?= asset('icons/app_icon.ico') ?>">
+    <link rel="apple-touch-icon" href="<?= asset('icons/app_icon.ico') ?>">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

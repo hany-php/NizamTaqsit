@@ -4,8 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تسجيل الدخول - نظام تقسيط</title>
+     <?php 
+    // رقم الإصدار لتجاوز الـ Cache - غير هذا الرقم عند كل تحديث
+    $version = '1.0.1.' . date('Ymd');
+    ?>
+    
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+     <!-- Icons -->
+    <link rel="icon" type="image/x-icon" href="<?= asset('icons/app_icon.ico') ?>">
+    <link rel="apple-touch-icon" href="<?= asset('icons/app_icon.ico') ?>">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+   
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {

@@ -34,6 +34,7 @@
                  data-name="<?= htmlspecialchars($product['name']) ?>"
                  data-price="<?= $product['installment_price'] ?: $product['cash_price'] ?>"
                  data-category="<?= $product['category_id'] ?>">
+                <div class="product-qty-badge" style="display: none;">0</div>
                 <div class="product-image">
                     <?php if ($product['image']): ?>
                         <img src="<?= upload('products/' . $product['image']) ?>" alt="" loading="lazy" decoding="async">
@@ -161,8 +162,12 @@
 .cat-btn { padding: 8px 16px; border: none; background: var(--bg-main); border-radius: 20px; font-family: inherit; font-size: 13px; cursor: pointer; }
 .cat-btn:hover, .cat-btn.active { background: var(--primary); color: white; }
 .products-grid { flex: 1; padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; overflow-y: auto; align-content: start; }
-.product-card { background: var(--bg-main); border-radius: var(--radius); padding: 15px; cursor: pointer; text-align: center; transition: all 0.2s; }
+.product-card { background: var(--bg-main); border-radius: var(--radius); padding: 15px; cursor: pointer; text-align: center; transition: all 0.2s; position: relative; border: 2px solid transparent; }
 .product-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.product-card.selected { border-color: var(--primary); background: linear-gradient(135deg, rgba(30, 136, 229, 0.08), rgba(30, 136, 229, 0.03)); box-shadow: 0 0 15px rgba(30, 136, 229, 0.3); }
+/* شارة الكمية على كارت المنتج */
+.product-qty-badge { position: absolute; top: -10px; right: -10px; min-width: 28px; height: 28px; padding: 0 8px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary), var(--primary-dark, #1565C0)); color: white; border-radius: 14px; font-size: 14px; font-weight: 700; box-shadow: 0 3px 10px rgba(30, 136, 229, 0.4); z-index: 10; animation: badge-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+@keyframes badge-pop { 0% { transform: scale(0); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
 .product-image { width: 70px; height: 70px; margin: 0 auto 10px; background: var(--bg-card); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .product-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
 .product-image .material-icons-round { font-size: 32px; color: var(--text-muted); }
@@ -583,6 +588,7 @@ function renderCart() {
     if (cart.length === 0) {
         container.innerHTML = '<p class="empty-cart">السلة فارغة</p>';
         calculateInstallment();
+        updateProductCardSelection();
         return;
     }
     
@@ -605,6 +611,33 @@ function renderCart() {
     `).join('');
     
     calculateInstallment();
+    updateProductCardSelection();
+}
+
+// تحديث حالة تحديد كروت المنتجات وإظهار الكمية
+function updateProductCardSelection() {
+    // إزالة التحديد من كل الكروت أولاً
+    document.querySelectorAll('.product-card').forEach(card => {
+        card.classList.remove('selected');
+        const badge = card.querySelector('.product-qty-badge');
+        if (badge) {
+            badge.style.display = 'none';
+            badge.textContent = '0';
+        }
+    });
+    
+    // إضافة التحديد للمنتجات الموجودة في السلة
+    cart.forEach(item => {
+        const card = document.querySelector(`.product-card[data-id="${item.id}"]`);
+        if (card) {
+            card.classList.add('selected');
+            const badge = card.querySelector('.product-qty-badge');
+            if (badge) {
+                badge.style.display = 'flex';
+                badge.textContent = item.quantity;
+            }
+        }
+    });
 }
 
 // تغيير الكمية

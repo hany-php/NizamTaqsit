@@ -13,25 +13,25 @@
   "id": "/",
   "icons": [
     {
-      "src": "/assets/icons/icon-192x192.png",
+      "src": "/assets/icons/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/icon-512x512.png",
+      "src": "/assets/icons/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icons/icon-maskable-192x192.png",
+      "src": "/assets/icons/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/assets/icons/icon-maskable-512x512.png",
+      "src": "/assets/icons/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -59,14 +59,14 @@
       "short_name": "POS",
       "description": "فتح نقطة البيع",
       "url": "/pos",
-      "icons": [{ "src": "/assets/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/assets/icons/web-app-manifest-192x192.png", "sizes": "192x192" }]
     },
     {
       "name": "العملاء",
       "short_name": "عملاء",
       "description": "إدارة العملاء",
       "url": "/customers",
-      "icons": [{ "src": "/assets/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/assets/icons/web-app-manifest-192x192.png", "sizes": "192x192" }]
     }
   ],
   "categories": ["business", "finance", "productivity"],
