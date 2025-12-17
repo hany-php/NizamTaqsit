@@ -12,6 +12,8 @@ class UserController extends Controller
     public function __construct()
     {
         parent::__construct();
+        // التحقق من تسجيل الدخول وصلاحية المدير
+        $this->requireRole('admin');
         $this->userModel = new User();
     }
 
@@ -20,15 +22,20 @@ class UserController extends Controller
      */
     public function index(): void
     {
-        $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-        $perPage = 15;
+        $page = (int) ($_GET['page'] ?? 1);
+        $perPage = (int) ($_GET['per_page'] ?? 15);
         
-        $result = $this->userModel->paginate($page, $perPage);
+        $totalCount = $this->db->fetchColumn("SELECT COUNT(*) FROM users");
+        $pagination = new \Core\Pagination($totalCount, $perPage, $page);
+        
+        $users = $this->db->fetchAll(
+            "SELECT * FROM users ORDER BY id DESC LIMIT {$pagination->getLimit()} OFFSET {$pagination->getOffset()}"
+        );
         
         $this->view('users/index', [
             'title' => 'إدارة المستخدمين',
-            'users' => $result['data'],
-            'pagination' => $result
+            'users' => $users,
+            'pagination' => $pagination
         ]);
     }
 

@@ -128,7 +128,7 @@
                 <small><?= userRole($user['role'] ?? '') ?></small>
             </div>
         </div>
-        <a href="<?= url('/logout') ?>" class="logout-btn" title="تسجيل خروج">
+        <a href="<?= url('/logout') ?>" class="logout-btn" title="تسجيل خروج" onclick="clearAllSiteData(event)">
             <span class="material-icons-round">logout</span>
         </a>
     </div>
@@ -137,24 +137,28 @@
 <script>
 function toggleSection(header) {
     const section = header.parentElement;
-    section.classList.toggle('open');
+    const nav = document.getElementById('sidebarNav');
+    const isOpening = !section.classList.contains('open');
     
-    // Save state to localStorage
-    const sectionName = section.dataset.section;
-    const openSections = JSON.parse(localStorage.getItem('openSections') || '["admin"]');
-    
-    if (section.classList.contains('open')) {
-        if (!openSections.includes(sectionName)) {
-            openSections.push(sectionName);
-        }
-    } else {
-        const index = openSections.indexOf(sectionName);
-        if (index > -1) {
-            openSections.splice(index, 1);
-        }
+    // إذا كنا نفتح قسم جديد، أغلق جميع الأقسام الأخرى
+    if (isOpening) {
+        nav.querySelectorAll('.nav-section.open').forEach(openSection => {
+            if (openSection !== section) {
+                openSection.classList.remove('open');
+            }
+        });
     }
     
-    localStorage.setItem('openSections', JSON.stringify(openSections));
+    section.classList.toggle('open');
+    
+    // Save state to localStorage - حفظ القسم المفتوح فقط
+    const sectionName = section.dataset.section;
+    
+    if (section.classList.contains('open')) {
+        localStorage.setItem('openSections', JSON.stringify([sectionName]));
+    } else {
+        localStorage.setItem('openSections', JSON.stringify([]));
+    }
 }
 
 // Initialize sidebar on page load
@@ -210,24 +214,85 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Restore open/closed states
-    const openSections = JSON.parse(localStorage.getItem('openSections') || '["admin"]');
+    // أغلق جميع الأقسام أولاً
     nav.querySelectorAll('.nav-section').forEach(section => {
-        const sectionName = section.dataset.section;
-        if (openSections.includes(sectionName)) {
-            section.classList.add('open');
-        } else {
-            section.classList.remove('open');
-        }
+        section.classList.remove('open');
     });
     
-    // Auto-open section containing active item
+    // افتح فقط القسم الذي يحتوي على العنصر النشط
     const activeItem = nav.querySelector('.nav-item.active');
     if (activeItem) {
         const parentSection = activeItem.closest('.nav-section');
-        if (parentSection && !parentSection.classList.contains('open')) {
+        if (parentSection) {
             parentSection.classList.add('open');
+            // حفظ القسم المفتوح في localStorage
+            localStorage.setItem('openSections', JSON.stringify([parentSection.dataset.section]));
+        }
+    } else {
+        // إذا لم يكن هناك عنصر نشط، افتح القسم المحفوظ أو الافتراضي
+        const openSections = JSON.parse(localStorage.getItem('openSections') || '["admin"]');
+        if (openSections.length > 0) {
+            const section = nav.querySelector(`[data-section="${openSections[0]}"]`);
+            if (section) section.classList.add('open');
         }
     }
 });
+
+// دالة مسح جميع بيانات الموقع عند تسجيل الخروج
+async function clearAllSiteData(event) {
+    event.preventDefault();
+    const logoutUrl = event.currentTarget.href;
+    
+    try {
+        // مسح localStorage
+        localStorage.clear();
+        console.log('localStorage cleared');
+        
+        // مسح sessionStorage
+        sessionStorage.clear();
+        console.log('sessionStorage cleared');
+        
+        // مسح جميع Cookies الخاصة بالموقع
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const cookieName = cookie.split('=')[0].trim();
+            document.cookie = cookieName + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+            document.cookie = cookieName + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=' + window.location.hostname;
+        }
+        console.log('Cookies cleared');
+        
+        // مسح IndexedDB
+        if (window.indexedDB && indexedDB.databases) {
+            const databases = await indexedDB.databases();
+            for (let db of databases) {
+                indexedDB.deleteDatabase(db.name);
+            }
+            console.log('IndexedDB cleared');
+        }
+        
+        // مسح Cache Storage (للـ PWA)
+        if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            for (let name of cacheNames) {
+                await caches.delete(name);
+            }
+            console.log('Cache Storage cleared');
+        }
+        
+        // إلغاء تسجيل Service Workers
+        if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (let registration of registrations) {
+                await registration.unregister();
+            }
+            console.log('Service Workers unregistered');
+        }
+        
+    } catch (error) {
+        console.error('Error clearing site data:', error);
+    }
+    
+    // الانتقال لصفحة تسجيل الخروج
+    window.location.href = logoutUrl;
+}
 </script>

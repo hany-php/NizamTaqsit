@@ -245,20 +245,43 @@
             e.preventDefault();
             // Stash the event so it can be triggered later
             deferredPrompt = e;
-            // Show custom install button
-            showInstallButton();
+            // Show custom install button (only if not dismissed in this session)
+            if (!sessionStorage.getItem('pwa-install-dismissed')) {
+                showInstallButton();
+            }
         });
         
         function showInstallButton() {
             // إنشاء زر التثبيت إذا لم يكن موجوداً
             if (!document.getElementById('pwa-install-btn')) {
-                const btn = document.createElement('button');
-                btn.id = 'pwa-install-btn';
-                btn.className = 'pwa-install-btn';
-                btn.innerHTML = '<span class="material-icons-round">install_mobile</span> تثبيت التطبيق';
-                btn.onclick = installPWA;
-                document.body.appendChild(btn);
+                const btnContainer = document.createElement('div');
+                btnContainer.id = 'pwa-install-btn';
+                btnContainer.className = 'pwa-install-btn';
+                
+                // زر التثبيت
+                const installBtn = document.createElement('span');
+                installBtn.className = 'pwa-install-text';
+                installBtn.innerHTML = '<span class="material-icons-round">install_mobile</span> تثبيت التطبيق';
+                installBtn.onclick = installPWA;
+                
+                // زر الإغلاق
+                const closeBtn = document.createElement('span');
+                closeBtn.className = 'pwa-close-btn';
+                closeBtn.innerHTML = '<span class="material-icons-round">close</span>';
+                closeBtn.onclick = dismissPWAButton;
+                
+                btnContainer.appendChild(installBtn);
+                btnContainer.appendChild(closeBtn);
+                document.body.appendChild(btnContainer);
             }
+        }
+        
+        function dismissPWAButton(e) {
+            e.stopPropagation();
+            // حفظ حالة الإغلاق في sessionStorage (تُمسح عند إغلاق المتصفح)
+            sessionStorage.setItem('pwa-install-dismissed', 'true');
+            const btn = document.getElementById('pwa-install-btn');
+            if (btn) btn.remove();
         }
         
         async function installPWA() {
@@ -301,7 +324,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 12px 20px;
+            padding: 10px 16px;
             background: linear-gradient(135deg, #1e88e5, #1565c0);
             color: white;
             border: none;
@@ -317,12 +340,40 @@
         }
         
         .pwa-install-btn:hover {
-            transform: scale(1.05);
+            transform: scale(1.02);
             box-shadow: 0 6px 25px rgba(30, 136, 229, 0.5);
         }
         
-        .pwa-install-btn .material-icons-round {
+        .pwa-install-btn .pwa-install-text {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        
+        .pwa-install-btn .pwa-install-text .material-icons-round {
             font-size: 20px;
+        }
+        
+        .pwa-install-btn .pwa-close-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            cursor: pointer;
+            margin-right: -4px;
+            transition: background 0.2s;
+        }
+        
+        .pwa-install-btn .pwa-close-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+        
+        .pwa-install-btn .pwa-close-btn .material-icons-round {
+            font-size: 16px;
         }
         
         @keyframes pwa-pulse {
