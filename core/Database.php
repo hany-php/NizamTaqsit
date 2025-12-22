@@ -132,13 +132,15 @@ class Database
     public function update(string $table, array $data, string $where, array $whereParams = []): int
     {
         $set = [];
-        foreach (array_keys($data) as $column) {
-            $set[] = "{$column} = :{$column}";
+        $values = [];
+        foreach ($data as $column => $value) {
+            $set[] = "{$column} = ?";
+            $values[] = $value;
         }
         $setString = implode(', ', $set);
         
         $sql = "UPDATE {$table} SET {$setString} WHERE {$where}";
-        $stmt = $this->query($sql, array_merge($data, $whereParams));
+        $stmt = $this->query($sql, array_merge($values, $whereParams));
         
         return $stmt->rowCount();
     }

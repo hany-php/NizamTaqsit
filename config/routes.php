@@ -173,6 +173,72 @@ $router->post('/api/auth/login', 'ApiController@login');
 $router->post('/api/payments', 'ApiController@storePayment');
 
 // ══════════════════════════════════════════════════════════════════
+// API v2 (محمي بـ API Key)
+// ══════════════════════════════════════════════════════════════════
+// المنتجات
+$router->get('/api/v2/products', 'Api\ApiV2Controller@products');
+$router->get('/api/v2/products/{id}', 'Api\ApiV2Controller@product');
+$router->post('/api/v2/products', 'Api\ApiV2Controller@createProduct');
+$router->put('/api/v2/products/{id}', 'Api\ApiV2Controller@updateProduct');
+$router->post('/api/v2/products/{id}/update', 'Api\ApiV2Controller@updateProduct');
+$router->delete('/api/v2/products/{id}', 'Api\ApiV2Controller@deleteProduct');
+$router->post('/api/v2/products/{id}/delete', 'Api\ApiV2Controller@deleteProduct');
+
+// التصنيفات
+$router->get('/api/v2/categories', 'Api\ApiV2Controller@categories');
+$router->get('/api/v2/categories/{id}', 'Api\ApiV2Controller@category');
+$router->post('/api/v2/categories', 'Api\ApiV2Controller@createCategory');
+$router->put('/api/v2/categories/{id}', 'Api\ApiV2Controller@updateCategory');
+$router->post('/api/v2/categories/{id}/update', 'Api\ApiV2Controller@updateCategory');
+$router->delete('/api/v2/categories/{id}', 'Api\ApiV2Controller@deleteCategory');
+$router->post('/api/v2/categories/{id}/delete', 'Api\ApiV2Controller@deleteCategory');
+
+// العملاء
+$router->get('/api/v2/customers', 'Api\ApiV2Controller@customers');
+$router->get('/api/v2/customers/{id}', 'Api\ApiV2Controller@customer');
+$router->post('/api/v2/customers', 'Api\ApiV2Controller@createCustomer');
+$router->put('/api/v2/customers/{id}', 'Api\ApiV2Controller@updateCustomer');
+$router->post('/api/v2/customers/{id}/update', 'Api\ApiV2Controller@updateCustomer');
+$router->delete('/api/v2/customers/{id}', 'Api\ApiV2Controller@deleteCustomer');
+$router->post('/api/v2/customers/{id}/delete', 'Api\ApiV2Controller@deleteCustomer');
+
+// المستخدمين
+$router->get('/api/v2/users', 'Api\ApiV2Controller@users');
+$router->get('/api/v2/users/{id}', 'Api\ApiV2Controller@user');
+$router->post('/api/v2/users', 'Api\ApiV2Controller@createUser');
+$router->put('/api/v2/users/{id}', 'Api\ApiV2Controller@updateUser');
+$router->post('/api/v2/users/{id}/update', 'Api\ApiV2Controller@updateUser');
+$router->delete('/api/v2/users/{id}', 'Api\ApiV2Controller@deleteUser');
+$router->post('/api/v2/users/{id}/delete', 'Api\ApiV2Controller@deleteUser');
+
+// الفواتير
+$router->get('/api/v2/invoices', 'Api\ApiV2Controller@invoices');
+$router->get('/api/v2/invoices/{id}', 'Api\ApiV2Controller@invoice');
+
+// الأقساط
+$router->get('/api/v2/installments', 'Api\ApiV2Controller@installments');
+$router->get('/api/v2/installments/today', 'Api\ApiV2Controller@installmentsToday');
+$router->get('/api/v2/installments/overdue', 'Api\ApiV2Controller@installmentsOverdue');
+$router->post('/api/v2/installments/{id}/pay', 'Api\ApiV2Controller@payInstallment');
+
+// المدفوعات
+$router->get('/api/v2/payments', 'Api\ApiV2Controller@payments');
+$router->get('/api/v2/payments/{id}', 'Api\ApiV2Controller@payment');
+
+// لوحة التحكم
+$router->get('/api/v2/dashboard/stats', 'Api\ApiV2Controller@dashboardStats');
+
+// ══════════════════════════════════════════════════════════════════
+// إدارة API Keys
+// ══════════════════════════════════════════════════════════════════
+$router->get('/settings/api', 'ApiKeyController@index');
+$router->post('/settings/api/generate', 'ApiKeyController@generate');
+$router->post('/settings/api/{id}/update', 'ApiKeyController@update');
+$router->post('/settings/api/{id}/toggle', 'ApiKeyController@toggle');
+$router->post('/settings/api/{id}/delete', 'ApiKeyController@delete');
+
+
+// ══════════════════════════════════════════════════════════════════
 // التصدير PDF/Excel
 // ══════════════════════════════════════════════════════════════════
 $router->get('/export/products/{format}', 'ExportController@products');

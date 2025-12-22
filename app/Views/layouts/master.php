@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#1e88e5">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="تقسيط">
     <meta name="description" content="نظام متكامل لإدارة التقسيط والمبيعات">
@@ -12,7 +12,7 @@
     <title><?= $pageTitle ?? 'نظام تقسيط' ?> - <?= $settings['store_name'] ?? 'نظام تقسيط' ?></title>
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="/manifest.json">
     
     <!-- Icons -->
     <link rel="icon" type="image/x-icon" href="<?= asset('icons/app_icon.ico') ?>">
@@ -241,78 +241,90 @@
         let deferredPrompt;
         
         window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('PWA: beforeinstallprompt event fired');
             // Prevent Chrome 67 and earlier from automatically showing the prompt
             e.preventDefault();
             // Stash the event so it can be triggered later
             deferredPrompt = e;
-            // Show custom install button (only if not dismissed in this session)
-            if (!sessionStorage.getItem('pwa-install-dismissed')) {
-                showInstallButton();
-            }
+            // Show custom install button
+            console.log('PWA: Showing custom install button');
+            showInstallButton();
         });
         
         function showInstallButton() {
-            // إنشاء زر التثبيت إذا لم يكن موجوداً
-            if (!document.getElementById('pwa-install-btn')) {
-                const btnContainer = document.createElement('div');
-                btnContainer.id = 'pwa-install-btn';
-                btnContainer.className = 'pwa-install-btn';
-                
-                // زر التثبيت
-                const installBtn = document.createElement('span');
-                installBtn.className = 'pwa-install-text';
-                installBtn.innerHTML = '<span class="material-icons-round">install_mobile</span> تثبيت التطبيق';
-                installBtn.onclick = installPWA;
-                
-                // زر الإغلاق
-                const closeBtn = document.createElement('span');
-                closeBtn.className = 'pwa-close-btn';
-                closeBtn.innerHTML = '<span class="material-icons-round">close</span>';
-                closeBtn.onclick = dismissPWAButton;
-                
-                btnContainer.appendChild(installBtn);
-                btnContainer.appendChild(closeBtn);
-                document.body.appendChild(btnContainer);
+            // لا تظهر الزر إذا تم إغلاقه في هذه الجلسة
+            if (sessionStorage.getItem('pwa-install-dismissed')) {
+                console.log('PWA: Install button was dismissed this session');
+                return;
             }
+            
+            // إنشاء زر التثبيت إذا لم يكن موجوداً
+            if (document.getElementById('pwa-install-btn')) {
+                document.getElementById('pwa-install-btn').style.display = 'flex';
+                return;
+            }
+            
+            const btnContainer = document.createElement('div');
+            btnContainer.id = 'pwa-install-btn';
+            btnContainer.className = 'pwa-install-btn';
+            
+            // زر التثبيت
+            const installBtn = document.createElement('span');
+            installBtn.className = 'pwa-install-text';
+            installBtn.innerHTML = '<span class="material-icons-round">install_mobile</span> تثبيت التطبيق';
+            installBtn.onclick = installPWA;
+            
+            // زر الإغلاق
+            const closeBtn = document.createElement('span');
+            closeBtn.className = 'pwa-close-btn';
+            closeBtn.innerHTML = '<span class="material-icons-round">close</span>';
+            closeBtn.onclick = dismissPWAButton;
+            
+            btnContainer.appendChild(installBtn);
+            btnContainer.appendChild(closeBtn);
+            document.body.appendChild(btnContainer);
         }
         
         function dismissPWAButton(e) {
-            e.stopPropagation();
+            if (e) e.stopPropagation();
             // حفظ حالة الإغلاق في sessionStorage (تُمسح عند إغلاق المتصفح)
             sessionStorage.setItem('pwa-install-dismissed', 'true');
             const btn = document.getElementById('pwa-install-btn');
-            if (btn) btn.remove();
+            if (btn) btn.style.display = 'none';
         }
         
         async function installPWA() {
-            if (!deferredPrompt) return;
+            console.log('PWA: installPWA called, deferredPrompt:', deferredPrompt ? 'exists' : 'null');
+            
+            if (!deferredPrompt) {
+                alert('التطبيق مثبت بالفعل أو لا يمكن تثبيته الآن');
+                return;
+            }
             
             // Show the install prompt
             deferredPrompt.prompt();
             
             // Wait for the user to respond to the prompt
             const { outcome } = await deferredPrompt.userChoice;
-            console.log('User response to the install prompt:', outcome);
+            console.log('PWA: User response to the install prompt:', outcome);
             
             // Clear the deferredPrompt
             deferredPrompt = null;
             
             // Hide the install button
-            const btn = document.getElementById('pwa-install-btn');
-            if (btn) btn.remove();
+            dismissPWAButton();
         }
         
         // Hide button if app is already installed
         window.addEventListener('appinstalled', () => {
-            console.log('PWA was installed');
-            const btn = document.getElementById('pwa-install-btn');
-            if (btn) btn.remove();
+            console.log('PWA: App was installed successfully');
+            dismissPWAButton();
             deferredPrompt = null;
         });
         
         // Check if running in standalone mode (already installed)
         if (window.matchMedia('(display-mode: standalone)').matches) {
-            console.log('Running as installed PWA');
+            console.log('PWA: Running as installed PWA (standalone mode)');
         }
     </script>
     

@@ -28,6 +28,22 @@ class Router
     }
     
     /**
+     * إضافة مسار PUT
+     */
+    public function put(string $path, string $handler): self
+    {
+        return $this->addRoute('PUT', $path, $handler);
+    }
+    
+    /**
+     * إضافة مسار DELETE
+     */
+    public function delete(string $path, string $handler): self
+    {
+        return $this->addRoute('DELETE', $path, $handler);
+    }
+    
+    /**
      * إضافة مسار
      */
     private function addRoute(string $method, string $path, string $handler): self

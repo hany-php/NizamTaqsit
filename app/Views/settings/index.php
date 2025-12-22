@@ -316,6 +316,18 @@
             <a href="<?= url('/settings/sms') ?>" class="btn btn-outline btn-block">إعدادات SMS</a>
         </div>
     </div>
+    
+    <div class="card">
+        <div class="card-header"><h3><span class="material-icons-round">api</span> واجهة برمجة التطبيقات</h3></div>
+        <div class="card-body">
+            <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 14px;">
+                إدارة مفاتيح API للتكامل مع تطبيقات الموبايل والأنظمة الخارجية
+            </p>
+            <a href="<?= url('/settings/api') ?>" class="btn btn-outline btn-block">
+                <span class="material-icons-round">vpn_key</span> إدارة API Keys
+            </a>
+        </div>
+    </div>
     <div class="card" style="grid-column: span 2">
         <div class="card-header"><h3><span class="material-icons-round">menu</span> ترتيب القائمة الجانبية</h3></div>
         <div class="card-body">

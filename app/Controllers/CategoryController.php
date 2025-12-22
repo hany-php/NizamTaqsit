@@ -78,9 +78,31 @@ class CategoryController extends Controller
             'is_active' => 1
         ];
         
+        if (empty($data['name'])) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'اسم التصنيف مطلوب']);
+                return;
+            }
+            $this->error('اسم التصنيف مطلوب');
+            $this->redirect(url('/categories'));
+            return;
+        }
+        
         $id = $this->categoryModel->create($data);
         
         $this->logActivity('create', 'category', $id, 'إضافة تصنيف: ' . $data['name']);
+        
+        if ($this->isAjax()) {
+            $category = $this->categoryModel->find($id);
+            $category['products_count'] = 0;
+            $this->json([
+                'success' => true, 
+                'message' => 'تم إضافة التصنيف بنجاح',
+                'category' => $category
+            ]);
+            return;
+        }
+        
         $this->success('تم إضافة التصنيف بنجاح');
         $this->redirect(url('/categories'));
     }
@@ -89,6 +111,17 @@ class CategoryController extends Controller
     {
         $this->requireRole(['admin']);
         
+        $category = $this->categoryModel->find($id);
+        if (!$category) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'التصنيف غير موجود']);
+                return;
+            }
+            $this->error('التصنيف غير موجود');
+            $this->redirect(url('/categories'));
+            return;
+        }
+        
         $data = [
             'name' => $this->input('name'),
             'description' => $this->input('description'),
@@ -96,12 +129,34 @@ class CategoryController extends Controller
             'icon' => $this->input('icon'),
             'color' => $this->input('color') ?: '#1e88e5',
             'sort_order' => (int) $this->input('sort_order', 0),
-            'is_active' => $this->input('is_active') ? 1 : 0
+            'is_active' => $this->input('is_active') !== null ? ($this->input('is_active') ? 1 : 0) : 1
         ];
+        
+        if (empty($data['name'])) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'اسم التصنيف مطلوب']);
+                return;
+            }
+            $this->error('اسم التصنيف مطلوب');
+            $this->redirect(url('/categories'));
+            return;
+        }
         
         $this->categoryModel->update($id, $data);
         
         $this->logActivity('update', 'category', $id, 'تعديل تصنيف: ' . $data['name']);
+        
+        if ($this->isAjax()) {
+            $updatedCategory = $this->categoryModel->find($id);
+            $updatedCategory['products_count'] = $this->categoryModel->getProductCount($id);
+            $this->json([
+                'success' => true, 
+                'message' => 'تم تحديث التصنيف بنجاح',
+                'category' => $updatedCategory
+            ]);
+            return;
+        }
+        
         $this->success('تم تحديث التصنيف بنجاح');
         $this->redirect(url('/categories'));
     }
@@ -182,6 +237,15 @@ class CategoryController extends Controller
         $this->categoryModel->delete($id);
         
         $this->logActivity('delete', 'category', $id, 'حذف تصنيف: ' . $category['name']);
+        
+        if ($this->isAjax()) {
+            $this->json([
+                'success' => true,
+                'message' => 'تم حذف التصنيف بنجاح'
+            ]);
+            return;
+        }
+        
         $this->success('تم حذف التصنيف بنجاح');
         $this->redirect(url('/categories'));
     }

@@ -171,25 +171,27 @@ th[onclick]:hover { background: var(--bg-main); }
 </style>
 
 <script>
+let currentCategoryId = null;
+
 function showAddModal() {
     document.getElementById('modalTitle').textContent = 'إضافة تصنيف';
-    document.getElementById('categoryForm').action = '<?= url('/categories') ?>';
     document.getElementById('categoryId').value = '';
     document.getElementById('categoryName').value = '';
     document.getElementById('categoryDesc').value = '';
     document.getElementById('categoryIcon').value = '';
     document.getElementById('categoryColor').value = '#1e88e5';
+    currentCategoryId = null;
     document.getElementById('categoryModal').classList.add('show');
 }
 
 function editCategory(cat) {
     document.getElementById('modalTitle').textContent = 'تعديل تصنيف';
-    document.getElementById('categoryForm').action = '<?= url('/categories/') ?>' + cat.id;
     document.getElementById('categoryId').value = cat.id;
     document.getElementById('categoryName').value = cat.name;
     document.getElementById('categoryDesc').value = cat.description || '';
     document.getElementById('categoryIcon').value = cat.icon || '';
     document.getElementById('categoryColor').value = cat.color || '#1e88e5';
+    currentCategoryId = cat.id;
     document.getElementById('categoryModal').classList.add('show');
 }
 
@@ -197,8 +199,64 @@ function closeModal() {
     document.getElementById('categoryModal').classList.remove('show');
 }
 
+// معالجة النموذج بـ AJAX
+document.getElementById('categoryForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const id = document.getElementById('categoryId').value;
+    const isEdit = id ? true : false;
+    const url = isEdit ? '<?= url('/categories/') ?>' + id : '<?= url('/categories') ?>';
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'جاري الحفظ...';
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error('HTTP ' + response.status + ': ' + text);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'حفظ';
+        
+        if (data.success) {
+            closeModal();
+            showToast(data.message);
+            
+            if (isEdit) {
+                // تحديث الصف في الجدول
+                updateTableRow(data.category);
+            } else {
+                // إضافة صف جديد
+                addTableRow(data.category);
+                updateCounts(1);
+            }
+        } else {
+            alert(data.message || 'حدث خطأ');
+        }
+    })
+    .catch(error => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'حفظ';
+        console.error('Error:', error);
+        alert('حدث خطأ: ' + error.message);
+    });
+});
+
 function showDeleteModal(id, name, productsCount) {
-    document.getElementById('deleteForm').action = '<?= url('/categories/') ?>' + id + '/delete';
+    currentCategoryId = id;
     
     const warning = document.getElementById('deleteWarning');
     const warningText = document.getElementById('deleteWarningText');
@@ -232,6 +290,125 @@ function showDeleteModal(id, name, productsCount) {
 
 function closeDeleteModal() {
     document.getElementById('deleteModal').classList.remove('show');
+}
+
+// معالجة الحذف بـ AJAX
+document.getElementById('deleteForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    if (!currentCategoryId) return;
+    
+    const formData = new FormData(this);
+    const submitBtn = document.getElementById('confirmDeleteBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'جاري الحذف...';
+    
+    fetch('<?= url('/categories/') ?>' + currentCategoryId + '/delete', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error('HTTP ' + response.status + ': ' + text);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'حذف';
+        
+        if (data.success) {
+            closeDeleteModal();
+            showToast(data.message);
+            
+            // حذف الصف من الجدول
+            const row = document.querySelector(`tr td:first-child`);
+            const rows = document.querySelectorAll('#categoriesTable tbody tr');
+            rows.forEach(r => {
+                if (r.cells[0].textContent.trim() == currentCategoryId) {
+                    r.remove();
+                }
+            });
+            updateCounts(-1);
+        } else {
+            alert(data.message || 'حدث خطأ');
+        }
+    })
+    .catch(error => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'حذف';
+        console.error('Error:', error);
+        alert('حدث خطأ: ' + error.message);
+    });
+});
+
+function addTableRow(cat) {
+    const tbody = document.querySelector('#categoriesTable tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td>${cat.id}</td>
+        <td>
+            <div class="category-icon-sm" style="background:${cat.color || '#1e88e5'}">
+                <span class="material-icons-round">${cat.icon || 'category'}</span>
+            </div>
+        </td>
+        <td>
+            <div class="color-box" style="background:${cat.color || '#1e88e5'}"></div>
+            <small class="text-muted">${cat.color || '#1e88e5'}</small>
+        </td>
+        <td><strong>${escapeHtml(cat.name)}</strong></td>
+        <td><small class="text-muted">${cat.description || '-'}</small></td>
+        <td><span class="badge badge-secondary">0 منتج</span></td>
+        <td>
+            <div class="actions">
+                <a href="<?= url('/categories/') ?>${cat.id}" class="btn btn-sm btn-primary" title="عرض المنتجات"><span class="material-icons-round">visibility</span></a>
+                <button class="btn btn-sm btn-secondary" onclick="editCategory(${JSON.stringify(cat).replace(/"/g, '&quot;')})" title="تعديل"><span class="material-icons-round">edit</span></button>
+                <button class="btn btn-sm btn-danger" onclick="showDeleteModal(${cat.id}, '${escapeHtml(cat.name)}', 0)" title="حذف"><span class="material-icons-round">delete</span></button>
+            </div>
+        </td>
+    `;
+    tbody.insertBefore(tr, tbody.firstChild);
+}
+
+function updateTableRow(cat) {
+    const rows = document.querySelectorAll('#categoriesTable tbody tr');
+    rows.forEach(r => {
+        if (r.cells[0].textContent.trim() == cat.id) {
+            r.cells[1].innerHTML = `<div class="category-icon-sm" style="background:${cat.color || '#1e88e5'}"><span class="material-icons-round">${cat.icon || 'category'}</span></div>`;
+            r.cells[2].innerHTML = `<div class="color-box" style="background:${cat.color || '#1e88e5'}"></div><small class="text-muted">${cat.color || '#1e88e5'}</small>`;
+            r.cells[3].innerHTML = `<strong>${escapeHtml(cat.name)}</strong>`;
+            r.cells[4].innerHTML = `<small class="text-muted">${cat.description || '-'}</small>`;
+        }
+    });
+}
+
+function updateCounts(delta) {
+    const countEl = document.querySelector('.summary-item strong');
+    if (countEl) {
+        const current = parseInt(countEl.textContent) || 0;
+        countEl.textContent = current + delta;
+    }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 24px;border-radius:8px;z-index:9999;';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
 }
 
 // ترتيب الجدول
