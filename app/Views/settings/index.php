@@ -310,12 +310,6 @@
         </div>
     </div>
     
-    <div class="card">
-        <div class="card-header"><h3><span class="material-icons-round">sms</span> الرسائل القصيرة</h3></div>
-        <div class="card-body">
-            <a href="<?= url('/settings/sms') ?>" class="btn btn-outline btn-block">إعدادات SMS</a>
-        </div>
-    </div>
     
     <div class="card">
         <div class="card-header"><h3><span class="material-icons-round">api</span> واجهة برمجة التطبيقات</h3></div>
@@ -540,7 +534,10 @@
 .settings-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; }
 .checkbox-label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .checkbox-label input { width: 20px; height: 20px; }
-@media (max-width: 1024px) { .settings-grid { grid-template-columns: 1fr; } }
+@media (max-width: 1024px) { 
+    .settings-grid { grid-template-columns: 1fr; }
+    .settings-grid .card[style*="grid-column: span 2"] { grid-column: span 1 !important; }
+}
 
 /* Menu Order Styles */
 .menu-order-list {

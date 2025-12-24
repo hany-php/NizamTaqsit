@@ -134,6 +134,8 @@ $router->get('/settings', 'SettingController@index');
 $router->post('/settings', 'SettingController@update');
 $router->get('/settings/installment', 'SettingController@installmentPlans');
 $router->post('/settings/installment', 'SettingController@updateInstallmentPlan');
+$router->post('/settings/installment/{id}', 'SettingController@updateInstallmentPlan');
+$router->post('/settings/installment/{id}/delete', 'SettingController@deleteInstallmentPlan');
 // إعدادات القائمة
 $router->post('/settings/menu-config', 'SettingController@saveMenuConfig');
 $router->get('/settings/menu-config', 'SettingController@fetchMenuConfig');
@@ -145,12 +147,6 @@ $router->post('/settings/backup/create', 'BackupController@create');
 $router->get('/settings/backup/download/{filename}', 'BackupController@download');
 $router->post('/settings/backup/delete/{filename}', 'BackupController@delete');
 $router->post('/settings/backup/restore', 'BackupController@restore');
-// الرسائل القصيرة
-$router->get('/settings/sms', 'SmsController@settings');
-$router->post('/settings/sms/save', 'SmsController@saveSettings');
-$router->post('/settings/sms/test', 'SmsController@sendTest');
-$router->post('/settings/sms/reminders', 'SmsController@sendReminders');
-$router->post('/settings/sms/overdue', 'SmsController@sendOverdueAlerts');
 
 // ══════════════════════════════════════════════════════════════════
 // التنبيهات

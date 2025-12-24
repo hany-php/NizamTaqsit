@@ -30,6 +30,7 @@
                         <td><span class="badge badge-<?= $plan['is_active'] ? 'success' : 'secondary' ?>"><?= $plan['is_active'] ? 'نشط' : 'معطل' ?></span></td>
                         <td>
                             <button class="btn btn-sm btn-secondary" onclick='editPlan(<?= json_encode($plan) ?>)'><span class="material-icons-round">edit</span></button>
+                            <button class="btn btn-sm btn-danger" onclick='deletePlan(<?= $plan["id"] ?>, "<?= htmlspecialchars($plan["name"], ENT_QUOTES) ?>")'><span class="material-icons-round">delete</span></button>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -106,4 +107,14 @@ function editPlan(plan) {
 }
 
 function closeModal() { document.getElementById('planModal').classList.remove('show'); }
+
+function deletePlan(id, name) {
+    if (confirm('هل أنت متأكد من حذف خطة التقسيط "' + name + '"؟')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '<?= url('/settings/installment/') ?>' + id + '/delete';
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
 </script>

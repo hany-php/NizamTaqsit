@@ -63,7 +63,7 @@ AddDefaultCharset UTF-8
 # ═══════════════════════════════════════════════════════════════
 
 # منع الوصول للملفات الحساسة
-<FilesMatch "\.(sql|sqlite|log|env)$">
+<FilesMatch "\.(sql|log|env)$">
     Order allow,deny
     Deny from all
 </FilesMatch>

@@ -145,13 +145,14 @@ class SettingController extends Controller
         ]);
     }
     
-    public function updateInstallmentPlan(): void
+    public function updateInstallmentPlan(?int $id = null): void
     {
         $this->requireRole(['admin']);
         
         $planModel = new InstallmentPlan();
         
-        $id = $this->input('id');
+        // Use route parameter if provided, otherwise fallback to POST data
+        $id = $id ?? $this->input('id');
         $data = [
             'name' => $this->input('name'),
             'months' => (int) $this->input('months'),
@@ -167,6 +168,25 @@ class SettingController extends Controller
         }
         
         $this->success('تم حفظ خطة التقسيط');
+        $this->redirect(url('/settings/installment'));
+    }
+    
+    public function deleteInstallmentPlan(int $id): void
+    {
+        $this->requireRole(['admin']);
+        
+        $planModel = new InstallmentPlan();
+        $plan = $planModel->find($id);
+        
+        if (!$plan) {
+            $this->error('خطة التقسيط غير موجودة');
+            $this->redirect(url('/settings/installment'));
+            return;
+        }
+        
+        $planModel->delete($id);
+        $this->logActivity('delete', 'installment_plan', $id, "حذف خطة التقسيط: {$plan['name']}");
+        $this->success('تم حذف خطة التقسيط بنجاح');
         $this->redirect(url('/settings/installment'));
     }
     
