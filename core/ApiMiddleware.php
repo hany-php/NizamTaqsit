@@ -57,15 +57,19 @@ class ApiMiddleware
      */
     private function getApiKeyFromRequest(): ?string
     {
-        // من Header
+        // من Header - البحث بشكل غير حساس لحالة الأحرف
         $headers = $this->getRequestHeaders();
         
-        if (isset($headers['X-API-KEY'])) {
-            return $headers['X-API-KEY'];
+        // تحويل كل مفاتيح الـ Headers إلى حالة صغيرة للمقارنة
+        $headersLower = array_change_key_case($headers, CASE_LOWER);
+        
+        if (isset($headersLower['x-api-key'])) {
+            return $headersLower['x-api-key'];
         }
         
-        if (isset($headers['x-api-key'])) {
-            return $headers['x-api-key'];
+        // محاولة أخرى من $_SERVER مباشرة
+        if (isset($_SERVER['HTTP_X_API_KEY'])) {
+            return $_SERVER['HTTP_X_API_KEY'];
         }
         
         // من Query Parameter (للاختبار فقط)
